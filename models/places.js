@@ -5,12 +5,12 @@ const placesSchema = mongoose.Schema({
   description: String,
   categorie: String,
   created_at: Date,
-  created_by: _id,
-  location: {},
-  likes: [],
-  events: [],
+  created_by: [{type: mongoose.Schema.Types.ObjectId, ref: 'users'}],
+  location: {latitude : String, longitude : String,},
+  likes: [{type: mongoose.Schema.Types.ObjectId, ref: 'users'}],
+  events: [{type: mongoose.Schema.Types.ObjectId, ref: 'events'}],
   google_id: String,
-  comments: [],
+  comments: [{type: mongoose.Schema.Types.ObjectId, ref: 'comments'}],
 });
 
 const Place = mongoose.model('places', placesSchema);

@@ -8,10 +8,10 @@ const usersSchema = mongoose.Schema({
   email: String,
   password: String,
   token: String,
-  favorites: [],
-  compagnions: [],
-  contacts: [],
-  discussions: [],
+  favorites: [{type: mongoose.Schema.Types.ObjectId, ref: 'places'}],
+  companions: [{name : String, dogBreed : String, weight : Number, sex : String, comment: String,}],
+  contacts: [{type: mongoose.Schema.Types.ObjectId, ref: 'users'}],
+  discussions: [{type: mongoose.Schema.Types.ObjectId, ref: 'discussions'}],
 });
 
 const User = mongoose.model('users', usersSchema);
