@@ -17,11 +17,9 @@ router.post("/:latitude/:longitude/:radius", (req, res) => {
   const placesTypes = ['park','dog_park','pet_store','restaurant','national_park','veterinary_care'];
   let dataTypes = '';
   for (const element of placesTypes){
-    console.log(dataTypes)
     dataTypes += `&includedTypes=${element}`
   }
   const params = `locationRestriction.circle.center.latitude=${req.params.latitude}&locationRestriction.circle.center.longitude=${req.params.longitude}&locationRestriction.circle.radius=${req.params.radius}${dataTypes}`
-  console.log(params)
 
   fetch(`https://places.googleapis.com/v1/places:searchNearby?${params} `, {
     method: 'POST',
