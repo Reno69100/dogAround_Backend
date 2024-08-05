@@ -11,17 +11,32 @@ router.get('/', function (req, res, next) {
   res.send('respond with a resource');
 });
 
-router.get('/signIn', (req, res) => {
+router.get('/signin', (req, res) => {
   User.find().then(data => {
     res.json({ result: true, user: data });
 
   });
 });
 
+// router.get('/signup', (req, res) => {
+//   User.find().then(data => {
+//     res.json({ result: true, user: data });
+
+//   });
+// });
+
+
+router.get('/signup', (req, res) => {
+  User.findOne({peudo: req.body.pseudo}).then(data => {
+    res.json({ result: true, user: data });
+    console.log('data = '+ data)
+
+  });
+});
 //route pour SignUp
 
 router.post('/signup', (req, res) => {
-  User.findOne({ pseudo: req.body.pseudo, email: req.body.email }).then(userData => {
+  User.findOne({pseudo: req.body.pseudo, email: req.body.email}).then(usersData => {
     const pseudo = req.body.pseudo;
     const token = uid2(32)
     const hash = bcrypt.hashSync(req.body.password, 10)
@@ -45,9 +60,8 @@ router.post('/signup', (req, res) => {
         res.json({result:false, error:'invalid @mail adress' })
         return
     }
-
     //verification si le compte existe déja
-    if (userData.email === email || userData.pseudo === pseudo) {
+    if (usersData.email === email || usersData.pseudo === pseudo) {
       res.json({ result: false, error: 'username or @mail already used' })
       return
     } 
@@ -79,11 +93,13 @@ router.post('/signin', (req, res) => {
     const email = req.body.email;
     const password = req.body.password;
 
+    //vérification champs vide
     if(!email || !password){
       res.json({result: false, error: 'fill the fields'})
       return
     }
 
+    //verification de l'existence du compte et du mot de passe
     if(userData && bcrypt.compareSync(req.body.password, userData.password)){
       userData.token = token
       res.json({result: true, token: userData.token })
