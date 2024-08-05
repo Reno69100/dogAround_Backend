@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const placesSchema = mongoose.Schema({
   title: String,
   description: String,
+  hours: String,
   categorie: String,
   created_at: Date,
   created_by: [{type: mongoose.Schema.Types.ObjectId, ref: 'users'}],
