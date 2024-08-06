@@ -15,6 +15,7 @@ const fetch = require('node-fetch');
 
 router.post("/:latitude/:longitude/:radius", (req, res) => {
   const placesTypes = ['park','dog_park','pet_store','restaurant','national_park','veterinary_care'];
+  //const placesTypes = ['park']
   let dataTypes = '';
   for (const element of placesTypes){
     dataTypes += `&includedTypes=${element}`
