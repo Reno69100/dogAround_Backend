@@ -39,8 +39,6 @@ router.post("/signup", (req, res) => {
       const hash = bcrypt.hashSync(req.body.password, 10);
       const email = req.body.email;
       const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/gi; //regEx pour adresse @mail valable
-      const emailCheck = email.match(emailRegex);
-      console.log(emailCheck);
       const surname = req.body.surname;
       const name = req.body.name;
       const city = req.body.city;
@@ -105,5 +103,33 @@ router.post("/signin", (req, res) => {
     }
   });
 });
+
+router.get('/:token', (req, res) => {
+  User.findOne({ peudo: req.body.pseudo }).then((data) => {
+    res.json({ result: true, user: data });
+    console.log("data = " + data);
+  });
+});
+
+//route pour modifier les champs modifiable du profile utilisateur
+router.post('/user/:token', (req, res) => {
+
+  const hash = bcrypt.hashSync(req.body.password, 10);
+
+//User.findOneAndUpdate(findOne({token}, {champs modifiable: valeurs}, {renvoi la maj}))
+  User.findOneAndUpdate(
+    {token:req.params.token},
+    {$set:{
+      pseudo: req.body.pseudo,
+       email: req.body.email,
+       surname: req.body.surname, 
+       password:hash, name: req.body.name, 
+       city: req.body.city 
+    }},
+    {new: true})
+    .then((data) => {
+      res.json({result: true, user: data})
+    })
+})
 
 module.exports = router;
