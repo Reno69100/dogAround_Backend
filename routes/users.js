@@ -36,12 +36,12 @@ router.get('/signup', (req, res) => {
 //route pour SignUp
 
 router.post('/signup', (req, res) => {
-  User.findOne({pseudo: req.body.pseudo, email: req.body.email}).then(usersData => {
+  User.findOne({$or: [{pseudo: req.body.pseudo}, {email: req.body.email}]}).then(usersData => {
     const pseudo = req.body.pseudo;
     const token = uid2(32)
     const hash = bcrypt.hashSync(req.body.password, 10)
     const email = req.body.email
-    const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/g; //regEx pour adresse @mail valable
+    const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/gi; //regEx pour adresse @mail valable
     const emailCheck = email.match(emailRegex)
     console.log(emailCheck)
     const surname = req.body.surname
@@ -61,13 +61,14 @@ router.post('/signup', (req, res) => {
         return
     }
     //verification si le compte existe déja
-    if (usersData.email === email || usersData.pseudo === pseudo) {
+    if (usersData) {
       res.json({ result: false, error: 'username or @mail already used' })
       return
     } 
 
     //creation nouvel utilisateur dans la BDD
-    const newUser = new User({
+    if(usersData === null){
+      const newUser = new User({
         pseudo: pseudo,
         avatar: './avatars/chien_1.png',
         created_at: new Date(),
@@ -84,7 +85,7 @@ router.post('/signup', (req, res) => {
       })
     }
   
-
+  }
 )})
 
 router.post('/signin', (req, res) => {
