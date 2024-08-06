@@ -75,7 +75,7 @@ router.post("/signup", (req, res) => {
           city: city,
         });
         newUser.save().then((data) => {
-          res.json({ result: true, token: data.token });
+          res.json({ result: true, pseudo: data.pseudo, token: data.token });
         });
       }
     }
