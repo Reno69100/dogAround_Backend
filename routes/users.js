@@ -49,16 +49,16 @@ router.post("/signup", (req, res) => {
         return;
       }
 
-      //verification @mail valide
-      if (!emailRegex.test(email)) {
-        res.json({ result: false, error: "invalid @mail adress" });
-        return;
-      }
-      //verification si le compte existe déja
-      if (usersData) {
-        res.json({ result: false, error: "username or @mail already used" });
-        return;
-      }
+    //verification @mail valide
+    if (!emailRegex.test(email)){
+        res.json({result:false, error:'invalid @mail adress' })
+        return
+    }
+    //verification si le compte existe déja
+    if (usersData) {
+      res.json({ result: false, error: 'username or @mail already used' })
+      return
+    } 
 
       //creation nouvel utilisateur dans la BDD
       if (usersData === null) {
@@ -97,7 +97,7 @@ router.post("/signin", (req, res) => {
     //verification de l'existence du compte et du mot de passe
     if (userData && bcrypt.compareSync(req.body.password, userData.password)) {
       userData.token = token;
-      res.json({ result: true, token: userData.token });
+      res.json({ result: true, token: userData.token, pseudo: userData.pseudo });
     } else {
       res.json({ result: false, error: "wrong email or password" });
     }
