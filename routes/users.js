@@ -61,7 +61,7 @@ router.post('/signup', (req, res) => {
         return
     }
     //verification si le compte existe déja
-    if (usersData.email === email || usersData.pseudo === pseudo) {
+    if (usersData) {
       res.json({ result: false, error: 'username or @mail already used' })
       return
     } 
