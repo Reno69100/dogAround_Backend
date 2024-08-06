@@ -74,6 +74,9 @@ router.post("/:latitude/:longitude/:radius", (req, res) => {
             }
           }
         }
+        if (typefilter.length === 0) {
+          typefilter='autre'
+        }
 
         //Schema objet nouvelle places à renovyer au frontend
         const newPlace = {
