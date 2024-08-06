@@ -44,7 +44,7 @@ router.post("/signup", (req, res) => {
       const city = req.body.city;
 
       // verification champs vide
-      if (!pseudo || !req.body.password || !surname || !name || !city) {
+      if (!pseudo || !req.body.password || !email) {
         res.json({ result: false, error: "fill the fields" });
         return;
       }
@@ -112,11 +112,11 @@ router.get('/:token', (req, res) => {
 });
 
 //route pour modifier les champs modifiable du profile utilisateur
-router.post('/user/:token', (req, res) => {
+router.put('/user/:token', (req, res) => {
 
   const hash = bcrypt.hashSync(req.body.password, 10);
 
-//User.findOneAndUpdate(findOne({token}, {champs modifiable: valeurs}, {renvoi la maj}))
+//User.findOneAndUpdate(findOne({token}, {champs clefs modifiable: valeurs}, {renvoi la MAJ}))
   User.findOneAndUpdate(
     {token:req.params.token},
     {$set:{
