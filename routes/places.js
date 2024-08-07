@@ -31,11 +31,11 @@ const categories = [
   ['', "event"],
 ];
 
-//Route POST pour récupérer les points d'intérêts, et évenements autour de l'utilisateur
-router.post("/:latitude/:longitude/:radius", (req, res) => {
+//Route get pour récupérer les points d'intérêts, et évenements autour de l'utilisateur
+router.get("/position/:latitude/:longitude/:radius", (req, res) => {
   //Vérification des params de la route
-  if ((req.params.latitude === null) || (req.params.latitude === null) || (req.params.latitude === null)) {
-    res.status(400).json({ result: false, error: "problem route post places/:latitude/:longitude/:radius" });
+  if ((req.params.latitude === null) || (req.params.longitude === null) || (req.params.radius === null)) {
+    res.status(400).json({ result: false, error: "problem route get places/position/:latitude/:longitude/:radius" });
     return;
   }
 
@@ -60,40 +60,78 @@ router.post("/:latitude/:longitude/:radius", (req, res) => {
     .then(response => response.json())
     .then(data => {
       //Mise en forme des données à renvoyer au front end
-      const places = data.places.map(e => {
+      if (data) {
+        const places = data.places.map(e => {
 
-        //Conversion du type google en type utilsable côté frontend
-        let typefilter = '';
-        for (const googletype of e.types) {
-          for (const element of categories) {
-            if (googletype.toLowerCase() === element[0].toLowerCase()) {
-              typefilter = element[1].toLowerCase();
-              /* console.log(typefilter); */
-              break;
+          //Conversion du type google en type utilsable côté frontend
+          let typefilter = '';
+          for (const googletype of e.types) {
+            for (const element of categories) {
+              if (googletype.toLowerCase() === element[0].toLowerCase()) {
+                typefilter = element[1].toLowerCase();
+                /* console.log(typefilter); */
+                break;
+              }
             }
           }
-        }
-        if (typefilter.length === 0) {
-          typefilter='autre'
-        }
+          if (typefilter.length === 0) {
+            typefilter = 'autre'
+          }
 
-        //Schema objet nouvelle places à renovyer au frontend
-        const newPlace = {
-          id: '',
-          google_id: e.id,
-          location: e.location,
-          type: typefilter,
-          events: [],
-          likes: [],
-        }
+          //Schema objet nouvelle places à renovyer au frontend
+          const newPlace = {
+            id: '',
+            google_id: e.id,
+            location: e.location,
+            type: typefilter,
+            events: [],
+            likes: [],
+          }
 
-        return newPlace;
-      })
+          return newPlace;
+        })
 
-      //Réponse route
-      res.status(200).json({ result: true, places });
+        //Réponse route
+        res.status(200).json({ result: true, places });
+      }
+      else {
+        //Réponse route
+        res.status(200).json({ result: true, message: "Pas de résultat" });
+      }
+
     })
 })
+
+/* //Route get pour récupérer les points d'intérêts, et évenements autour de la ville demandé par l'utilisateur
+router.get("/city/:city/:radius", (req, res) => {
+  //Vérification des params de la route
+  if ((req.params.city === null) || (req.params.radius === null)) {
+    res.status(400).json({ result: false, error: "problem route get /city/:city/:radius" });
+    return;
+  }
+
+  //Query recherche du lieu
+  const textQuery = req.params.city;
+
+  //Query recherche des coordonnées de la ville
+  const params = `textQuery=${req.params.city}`;
+
+  console.log(params)
+  //Requete API google
+  fetch(`https://places.googleapis.com/v1/places:searchText?${params}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Goog-Api-Key': process.env.GOOGLE_API_KEY,
+      'X-Goog-FieldMask': 'places.id,places.location',
+    },
+  })
+    .then(response => response.json())
+    .then(data => {
+      //Réponse route
+      res.status(200).json({ result: true, location : data.places[0].location });
+    })
+}) */
 
 module.exports = router;
 
