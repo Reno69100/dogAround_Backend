@@ -34,83 +34,93 @@ router.get("/signup", (req, res) => {
 router.post("/signup", (req, res) => {
   //'$or:' == '||' ; findOne({pseudo:req.body.pseudo} || {email: req.body.email})
   User.findOne({
-    $or:[
-      {pseudo: req.body.pseudo},
-      { email: req.body.email}
-    ]}).then(
-     (usersData) => {
-       const pseudo = req.body.pseudo;
-       const token = uid2(32);
-       const hash = bcrypt.hashSync(req.body.password, 10);
-       const email = req.body.email;
-       const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/gi; //regEx pour adresse @mail valable
-       const surname = req.body.surname;
-       const name = req.body.name;
-       const city = req.body.city;
-
-      // verification champs vide
-      if (!pseudo || !req.body.password || !email) {
-        res.json({ result: false, error: "fill the fields" });
-        return;
-      }
-
-    //verification @mail valide
-    if (!emailRegex.test(email)){
-        res.json({result:false, error:'invalid @mail adress' })
-        return
-    }
-    //verification si le compte existe déja
-    if (usersData) {
-      res.json({ result: false, error: 'username or @mail already used' })
-      return
-    } 
-
-      //creation nouvel utilisateur dans la BDD
-      if (usersData === null) {
-        const newUser = new User({
-          pseudo: pseudo,
-          avatar: "./avatars/chien_1.png",
-          created_at: new Date(),
-          private: false,
-          email: email,
-          password: hash,
-          token: token,
-          surname: surname,
-          name: name,
-          city: city,
-        });
-        newUser.save().then((data) => {
-          res.json({ result: true, pseudo: data.pseudo, city: data.city, token: data.token });
-        });
-      }
-    }
-  );
-});
-
-router.post("/signin", (req, res) => {
-  User.findOne({ email: req.body.email }).then((userData) => {
+    $or: [{ pseudo: req.body.pseudo }, { email: req.body.email }],
+  }).then((usersData) => {
+    const pseudo = req.body.pseudo;
     const token = uid2(32);
+    const hash = bcrypt.hashSync(req.body.password, 10);
     const email = req.body.email;
-    const password = req.body.password;
+    const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/gi; //regEx pour adresse @mail valable
+    const surname = req.body.surname;
+    const name = req.body.name;
+    const city = req.body.city;
 
-    //vérification champs vide
-    if (!email || !password) {
+    // verification champs vide
+    if (!pseudo || !req.body.password || !email) {
       res.json({ result: false, error: "fill the fields" });
       return;
     }
 
-    //verification de l'existence du compte et du mot de passe
-    if (userData && bcrypt.compareSync(req.body.password, userData.password)) {
-      userData.token = token;
-      User.updateOne({email: req.body.email},{token: userData.token})
-      res.json({ result: true, token: userData.token, pseudo: userData.pseudo });
-    } else {
-      res.json({ result: false, error: "wrong email or password" });
+    //verification @mail valide
+    if (!emailRegex.test(email)) {
+      res.json({ result: false, error: "invalid @mail adress" });
+      return;
+    }
+    //verification si le compte existe déja
+    if (usersData) {
+      res.json({ result: false, error: "username or @mail already used" });
+      return;
+    }
+
+    //creation nouvel utilisateur dans la BDD
+    if (usersData === null) {
+      const newUser = new User({
+        pseudo: pseudo,
+        avatar: "./avatars/chien_1.png",
+        created_at: new Date(),
+        private: false,
+        email: email,
+        password: hash,
+        token: token,
+        surname: surname,
+        name: name,
+        city: city,
+      });
+      newUser.save().then((data) => {
+        res.json({
+          result: true,
+          pseudo: data.pseudo,
+          city: data.city,
+          token: data.token,
+        });
+      });
     }
   });
 });
 
-router.get('/:token', (req, res) => {
+
+router.post("/signin", (req, res) => {
+  const { email, password } = req.body;
+
+  // Vérifier que les champs ne sont pas vides
+  if (!email || !password) {
+    return res.json({ result: false, error: "fill the fields" });
+  }
+
+  // Chercher l'utilisateur par email
+  User.findOne({ email })
+    .then((userData) => {
+      if (userData && bcrypt.compareSync(password, userData.password)) {
+        const token = uid2(32);
+        userData.token = token;
+        userData
+          .save()
+          .then(() => {
+            res.json({
+              result: true,
+              token: userData.token,
+              pseudo: userData.pseudo,
+              city: userData.city, 
+            });
+          })
+      } else {
+        res.json({ result: false, error: "wrong email or password" });
+      }
+    })
+});
+
+
+router.get("/:token", (req, res) => {
   User.findOne({ peudo: req.body.pseudo }).then((data) => {
     res.json({ result: true, user: data });
     console.log("data = " + data);
@@ -118,26 +128,27 @@ router.get('/:token', (req, res) => {
 });
 
 //route pour modifier les champs modifiable du profile utilisateur
-router.put('/:token', (req, res) => {
-
+router.put("/:token", (req, res) => {
   const hash = bcrypt.hashSync(req.body.password, 10);
 
-//User.findOneAndUpdate(findOne({token}, {champs clefs modifiable: valeurs}, {renvoi la MAJ}))
+  //User.findOneAndUpdate(findOne({token}, {champs clefs modifiable: valeurs}, {renvoi la MAJ}))
   User.findOneAndUpdate(
-    {token:req.params.token},
-    {$set:{
-      pseudo: req.body.pseudo,
-       email: req.body.email,
-       surname: req.body.surname,
-       password:hash, 
-       name: req.body.name,
-       city: req.body.city,
-    }},
-    {new: true})
-    .then((data) => {
-      console.log(data)
-      res.json({result: true, user: data})
-    })
-})
+    { token: req.params.token },
+    {
+      $set: {
+        pseudo: req.body.pseudo,
+        email: req.body.email,
+        surname: req.body.surname,
+        password: hash,
+        name: req.body.name,
+        city: req.body.city,
+      },
+    },
+    { new: true }
+  ).then((data) => {
+    console.log(data);
+    res.json({ result: true, user: data });
+  });
+});
 
 module.exports = router;
