@@ -75,7 +75,7 @@ router.post("/signup", (req, res) => {
           city: city,
         });
         newUser.save().then((data) => {
-          res.json({ result: true, pseudo: data.pseudo, token: data.token });
+          res.json({ result: true, pseudo: data.pseudo, city: data.city, token: data.token });
         });
       }
     }
@@ -97,7 +97,12 @@ router.post("/signin", (req, res) => {
     //verification de l'existence du compte et du mot de passe
     if (userData && bcrypt.compareSync(req.body.password, userData.password)) {
       userData.token = token;
-      res.json({ result: true, token: userData.token, pseudo: userData.pseudo });
+      res.json({
+        result: true,
+        token: userData.token,
+        pseudo: userData.pseudo,
+        city: userData.city,
+      });
     } else {
       res.json({ result: false, error: "wrong email or password" });
     }
