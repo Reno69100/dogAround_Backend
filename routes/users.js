@@ -32,16 +32,21 @@ router.get("/signup", (req, res) => {
 //route pour SignUp
 
 router.post("/signup", (req, res) => {
-  User.findOne({$or:[{pseudo: req.body.pseudo},{ email: req.body.email}]}).then(
-    (usersData) => {
-      const pseudo = req.body.pseudo;
-      const token = uid2(32);
-      const hash = bcrypt.hashSync(req.body.password, 10);
-      const email = req.body.email;
-      const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/gi; //regEx pour adresse @mail valable
-      const surname = req.body.surname;
-      const name = req.body.name;
-      const city = req.body.city;
+  //'$or:' == '||' ; findOne({pseudo:req.body.pseudo} || {email: req.body.email})
+  User.findOne({
+    $or:[
+      {pseudo: req.body.pseudo},
+      { email: req.body.email}
+    ]}).then(
+     (usersData) => {
+       const pseudo = req.body.pseudo;
+       const token = uid2(32);
+       const hash = bcrypt.hashSync(req.body.password, 10);
+       const email = req.body.email;
+       const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/gi; //regEx pour adresse @mail valable
+       const surname = req.body.surname;
+       const name = req.body.name;
+       const city = req.body.city;
 
       // verification champs vide
       if (!pseudo || !req.body.password || !email) {
