@@ -32,16 +32,21 @@ router.get("/signup", (req, res) => {
 //route pour SignUp
 
 router.post("/signup", (req, res) => {
-  User.findOne({$or:[{pseudo: req.body.pseudo},{ email: req.body.email}]}).then(
-    (usersData) => {
-      const pseudo = req.body.pseudo;
-      const token = uid2(32);
-      const hash = bcrypt.hashSync(req.body.password, 10);
-      const email = req.body.email;
-      const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/gi; //regEx pour adresse @mail valable
-      const surname = req.body.surname;
-      const name = req.body.name;
-      const city = req.body.city;
+  //'$or:' == '||' ; findOne({pseudo:req.body.pseudo} || {email: req.body.email})
+  User.findOne({
+    $or:[
+      {pseudo: req.body.pseudo},
+      { email: req.body.email}
+    ]}).then(
+     (usersData) => {
+       const pseudo = req.body.pseudo;
+       const token = uid2(32);
+       const hash = bcrypt.hashSync(req.body.password, 10);
+       const email = req.body.email;
+       const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/gi; //regEx pour adresse @mail valable
+       const surname = req.body.surname;
+       const name = req.body.name;
+       const city = req.body.city;
 
       // verification champs vide
       if (!pseudo || !req.body.password || !email) {
@@ -97,12 +102,8 @@ router.post("/signin", (req, res) => {
     //verification de l'existence du compte et du mot de passe
     if (userData && bcrypt.compareSync(req.body.password, userData.password)) {
       userData.token = token;
-      res.json({
-        result: true,
-        token: userData.token,
-        pseudo: userData.pseudo,
-        city: userData.city,
-      });
+      User.updateOne({email: req.body.email},{token: userData.token})
+      res.json({ result: true, token: userData.token, pseudo: userData.pseudo });
     } else {
       res.json({ result: false, error: "wrong email or password" });
     }
