@@ -144,40 +144,49 @@ router.get('/poi/:idgoogle', (req, res) => {
 
 })
 
-router.post('/poi/:idgoogle', (req, res) => {
-  Place.findOne({ google_id: req.params.idgoogle}).then((data) => {
-    console.log(data)
+router.get('/poi/:idgoogle', (req, res) => {
+  Place.findOne({google_id : req.params.idgoogle}).then ((data) => {
+    const placeId= req.params.idgoogle
 
-    if (!data) {
-      const googleId = req.params.idgoogle
-      const apiKey = process.env.GOOGLE_API_KEY
-      fetch(`https://places.googleapis.com/v1/places/${googleId}?fields=id,displayName&key=${apiKey}`)
-        .then(response => response.json())
-        .then(placeData => {
-          console.log(placeData)
-          const newPlace = new Place({
-            title: req.body.title,
-            description: req.body.description,
-            catégorie: req.body.categories,
-            created_at: new Date,
-            google_id: req.params.idgoogle
+    if(!data){
+    
+    fetch(`https://places.googleapis.com/v1/places/${placeId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Goog-Api-Key': process.env.GOOGLE_API_KEY,
+        'X-Goog-FieldMask': 'displayName,photos',
+      },
+    })
+    .then(response => response.json())
+    .then(placeData => {
 
-          })
-          newPlace.save().then((data) => {
-            res.json({ result: true, message: 'created' })
-          })
+      res.json({
+        result: true,
+        places: {
+          image: placeData.photos.name,
+          nom: placeData.displayName.text,
+          adresse: placeData.formattedAdress,
+          horaires: placeData.regularOpeningHours.weekdayDescriptions,
+          description: placeData.primaryTypeDisplayName.text,
+          catégorie: placeData.primaryType,
+          localisation: {latitude: placeData.location.latitude, longitude: placeData.location.longitude},
+          nbLike: 0 ,
+          liked: [],
+          commentaires: [],
+          favoris: [],
+          event: [],
+        }
+      })
 
-        })
-
-
-    } else {
-      res.json({ result: false, message: 'already exists' })
-      console.log(data + 'false')
-
-    }
+    })
+  }else{
+    res.json({result: false, error: 'no registered location'})
+  }
   })
-  
 })
+
+
 
 module.exports = router;
 
