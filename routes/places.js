@@ -13,6 +13,23 @@ const fetch = require('node-fetch');
 // https://places.googleapis.com/v1/places:searchNearby?locationRestriction={circle={center={latitute=${latitude},longitude=${longitude}},radius=${radius}}} 
 // const keywords = "dog-friendly park OR dog park OR dog-friendly beach OR dog-friendly trail OR dog-friendly hiking OR dog-friendly outdoor area OR dog-friendly lake OR dog-friendly nature reserve OR dog-friendly campground OR dog-friendly picnic area";
 
+//Déclaration categories a recuperer sur Google maps
+const placesTypes = ['park', 'dog_park', 'pet_store', 'restaurant', 'national_park', 'veterinary_care'];
+
+//Déclaration categories côté frontend
+const categories = [
+  ['park', "parc"],
+  ['dog_park', "parc"],
+  ['national_park', "parc"],
+  ['pet_store', "animalerie"],
+  ['restaurant', "restaurant"],
+  ['veterinary_care', "veterinaire"],
+  ['', "air"],
+  ['', "eau"],
+  ['', "like"],
+  ['', "favori"],
+  ['', "event"],
+];
 
 //Route POST pour récupérer les points d'intérêts, et évenements autour de l'utilisateur
 router.post("/:latitude/:longitude/:radius", (req, res) => {
@@ -21,9 +38,6 @@ router.post("/:latitude/:longitude/:radius", (req, res) => {
     res.status(400).json({ result: false, error: "problem route post places/:latitude/:longitude/:radius" });
     return;
   }
-
-  //Déclaration categories a recuperer sur Google maps
-  const placesTypes = ['park', 'dog_park', 'pet_store', 'restaurant', 'national_park', 'veterinary_care'];
 
   //Ecriture query includedTypes
   let dataTypes = '';
@@ -45,21 +59,6 @@ router.post("/:latitude/:longitude/:radius", (req, res) => {
   })
     .then(response => response.json())
     .then(data => {
-      //Déclaration categories côté frontend
-      const categories = [
-        ['park', "parc"],
-        ['dog_park', "parc"],
-        ['national_park', "parc"],
-        ['pet_store', "animalerie"],
-        ['restaurant', "restaurant"],
-        ['veterinary_care', "veterinaire"],
-        ['', "air"],
-        ['', "eau"],
-        ['', "like"],
-        ['', "favori"],
-        ['', "event"],
-      ];
-
       //Mise en forme des données à renvoyer au front end
       const places = data.places.map(e => {
 
