@@ -117,7 +117,7 @@ router.get('/:token', (req, res) => {
 });
 
 //route pour modifier les champs modifiable du profile utilisateur
-router.put('/user/:token', (req, res) => {
+router.put('/:token', (req, res) => {
 
   const hash = bcrypt.hashSync(req.body.password, 10);
 
@@ -127,12 +127,14 @@ router.put('/user/:token', (req, res) => {
     {$set:{
       pseudo: req.body.pseudo,
        email: req.body.email,
-       surname: req.body.surname, 
-       password:hash, name: req.body.name, 
-       city: req.body.city 
+       surname: req.body.surname,
+       password:hash, 
+       name: req.body.name,
+       city: req.body.city,
     }},
     {new: true})
     .then((data) => {
+      console.log(data)
       res.json({result: true, user: data})
     })
 })
