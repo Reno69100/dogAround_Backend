@@ -137,20 +137,24 @@ router.get("/city/:city/:radius", (req, res) => {
     })
 }) */
 
-router.get('/id/:id', (req, res) => {
-  Place.findOne({ _id: req.params.id }.then((data) => {
-    res.json({ result: true, places: data })
-  }))
+router.get('/poi/:idgoogle', (req, res) => {
+  Place.findOne({ google_id: req.params.idgoogle}).then((data) => {
+    res.json({result: true, place: data})
+  })
+
 })
 
-router.post('./favori/:idgoogle/:token', (req, res) => {
-  Place.findOne({ google_id: req.params.idgoogle, token: req.params.token }.then((data) => {
-    if (data) {
+router.post('/poi/:idgoogle', (req, res) => {
+  Place.findOne({ google_id: req.params.idgoogle}).then((data) => {
+    console.log(data)
+
+    if (!data) {
       const googleId = req.params.idgoogle
       const apiKey = process.env.GOOGLE_API_KEY
       fetch(`https://places.googleapis.com/v1/places/${googleId}?fields=id,displayName&key=${apiKey}`)
         .then(response => response.json())
         .then(placeData => {
+          console.log(placeData)
           const newPlace = new Place({
             title: req.body.title,
             description: req.body.description,
@@ -168,9 +172,11 @@ router.post('./favori/:idgoogle/:token', (req, res) => {
 
     } else {
       res.json({ result: false, message: 'already exists' })
+      console.log(data + 'false')
+
     }
   })
-  )
+  
 })
 
 module.exports = router;

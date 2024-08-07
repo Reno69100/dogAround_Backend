@@ -102,6 +102,7 @@ router.post("/signin", (req, res) => {
     //verification de l'existence du compte et du mot de passe
     if (userData && bcrypt.compareSync(req.body.password, userData.password)) {
       userData.token = token;
+      User.updateOne({email: req.body.email},{token: userData.token})
       res.json({ result: true, token: userData.token, pseudo: userData.pseudo });
     } else {
       res.json({ result: false, error: "wrong email or password" });
