@@ -137,45 +137,99 @@ router.get("/city/:city/:radius", (req, res) => {
     })
 }) */
 
-router.get('/poi/:idgoogle', (req, res) => {
-  Place.findOne({ google_id: req.params.idgoogle}).then((data) => {
-    res.json({result: true, place: data})
+router.get('/id/:google_id', (req, res) => {
+  Place.findOne({ google_id: req.params.google_id}).then((placeData) => {
+
+    if(placeData){
+      res.json({result: true, place: placeData})
+    }else{
+      res.json({result: false, error: 'no registered location'})
+    }
   })
 
 })
 
-router.get('/poi/:idgoogle', (req, res) => {
-  Place.findOne({google_id : req.params.idgoogle}).then ((data) => {
-    const placeId= req.params.idgoogle
+// router.post('/id/:google_id', (req, res) => {
+//   Place.findOne({ google_id: req.params.google_id}).then((placeData) => {
 
-    if(!data){
+//     if(!placeData){
+//       fetch(`https://places.googleapis.com/v1/places/${google_id}`, {
+//         method: 'GET',
+//         headers: {
+//           'Content-Type': 'application/json',
+//           'X-Goog-Api-Key': process.env.GOOGLE_API_KEY,
+//           'X-Goog-FieldMask': 'displayName,photos,location,regularOpeningHours,primaryTypeDisplayName',
+//         },
+//       }).then(response, response.json())
+//           .then(data => {
+//             const newUser = new User({
+//               title: 'Park du Cinquantenaire',
+//               description: 'Park',
+//               hours: String,
+//               categorie: String,
+//               created_at: new Date(),
+//               created_by: [{type: mongoose.Schema.Types.ObjectId, ref: 'users'}],
+//               location: {latitude : String, longitude : String,},
+//               likes: [{type: mongoose.Schema.Types.ObjectId, ref: 'users'}],
+//               nbLike: Number,
+//               events: [{type: mongoose.Schema.Types.ObjectId, ref: 'events'}],
+//               google_id: ChIJj61dQgK6j4AR4GeTYWZsKWw,
+//               comments: [{type: mongoose.Schema.Types.ObjectId, ref: 'comments'}],
+//             });
+//             newUser.save().then((data) => {
+//               res.json({
+//                 result: true,
+//                 pseudo: data.pseudo,
+//                 city: data.city,
+//                 token: data.token,
+//               });
+//             });
+//           })
+
+
+//       res.json({result: true, place: placeData})
+//     }else{
+//       res.json({result: false, error: 'no registered location'})
+//     }
+//   })
+
+// })
+
+router.get('/id/:id/:google_id/', (req, res) => {
+  Place.findOne({_id : req.params.id}).then ((data) => {
+    const google_id= req.params.google_id
+
+    if(data){
     
-    fetch(`https://places.googleapis.com/v1/places/${placeId}`, {
+    fetch(`https://places.googleapis.com/v1/places/${google_id}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
         'X-Goog-Api-Key': process.env.GOOGLE_API_KEY,
-        'X-Goog-FieldMask': 'displayName,photos',
+        'X-Goog-FieldMask': 'displayName,photos,location,regularOpeningHours,primaryTypeDisplayName',
       },
     })
     .then(response => response.json())
     .then(placeData => {
+      console.log('Place Data : ' +placeData)
+
+      const likes = data.likes;
 
       res.json({
         result: true,
         places: {
-          image: placeData.photos.name,
-          nom: placeData.displayName.text,
+          _id: req.params.id,
+          image: placeData.photos[0].name,
+          nom: placeData.displayName,
           adresse: placeData.formattedAdress,
           horaires: placeData.regularOpeningHours.weekdayDescriptions,
-          description: placeData.primaryTypeDisplayName.text,
-          catégorie: placeData.primaryType,
-          localisation: {latitude: placeData.location.latitude, longitude: placeData.location.longitude},
-          nbLike: 0 ,
-          liked: [],
-          commentaires: [],
-          favoris: [],
-          event: [],
+          description: placeData.primaryTypeDisplayName,
+          location: {latitude: placeData.location.latitude, longitude: placeData.location.longitude},
+          likes: likes,
+          nbLike: likes.length ,
+          commentaires: data.commentaires,
+          favoris: data.favoris,
+          event: data.event,
         }
       })
 
@@ -185,6 +239,9 @@ router.get('/poi/:idgoogle', (req, res) => {
   }
   })
 })
+
+
+
 
 
 

@@ -1,6 +1,7 @@
 var express = require("express");
 var router = express.Router();
 const User = require("../models/users");
+const Place = require('../models/places')
 
 const uid2 = require("uid2");
 const bcrypt = require("bcrypt");
@@ -123,7 +124,7 @@ router.post("/signin", (req, res) => {
 });
 
 
-router.get("/:token", (req, res) => {
+router.get("/", (req, res) => {
   User.findOne({ peudo: req.body.pseudo }).then((data) => {
     res.json({ result: true, user: data });
     console.log("data = " + data);
@@ -131,27 +132,22 @@ router.get("/:token", (req, res) => {
 });
 
 //route pour modifier les champs modifiable du profile utilisateur
-router.put("/:token", (req, res) => {
-  const update = {};
-
-  // Vérifier chaque champ modifiable et ajouter à update seulement s'il est fourni
-  if (req.body.pseudo) update.pseudo = req.body.pseudo;
-  if (req.body.email) update.email = req.body.email;
-  if (req.body.surname) update.surname = req.body.surname;
-  if (req.body.name) update.name = req.body.name;
-  if (req.body.city) update.city = req.body.city;
-  if (req.body.avatar) update.avatar = req.body.avatar;
-
-  // Hachage du mot de passe si un nouveau mot de passe est fourni
-  if (req.body.password) {
-    const hash = bcrypt.hashSync(req.body.password, 10);
-    update.password = hash;
-  }
+router.put("/", (req, res) => {
+  const hash = bcrypt.hashSync(req.body.password, 10);
 
   // Mise à jour de l'utilisateur avec les champs modifiés
   User.findOneAndUpdate(
-    { token: req.params.token },
-    { $set: update },
+    { token: req.body.token },
+    {
+      $set: {
+        pseudo: req.body.pseudo,
+        email: req.body.email,
+        surname: req.body.surname,
+        password: hash,
+        name: req.body.name,
+        city: req.body.city,
+      },
+    },
     { new: true }
   ).then((data) => {
     if (data) {
@@ -227,5 +223,48 @@ router.post("/companions", (req, res) => {
       }
     });
 });
+router.get('/favori/:id/', (req, res) => {
+  Place.findOne({token: req.params.id})
+    .then((dataPlace) => {
+      console.log(dataPlace)
+      if(!dataPlace){
+        User.findOne({token: req.body.token}).then((userData) => {
+          console.log(userData)
+          res.json({result: true, user: userData})
+
+      
+        })
+
+      }
+    })
+})
+
+// route .put pour voir si l'el à FAV est dans la BDD puis rajouter son idgoogleID dans le fav. du User
+router.put('/favori/:id', (req, res) => {
+  
+      User.findOne({token: req.body.token}).then((userData) => {
+
+        if(userData){
+          User.updateOne(
+            {token: req.params.token},
+            { $push: { favorites: req.params.id }}
+           ).then(() => {
+            res.json({result: true,})
+          })
+        }else{
+          res.json({result: false, errof: 'already exists'})
+        }
+      })
+    }
+  )
+
+
+
+
+    
+    
+
+    
+
 
 module.exports = router;
