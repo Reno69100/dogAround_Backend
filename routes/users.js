@@ -45,6 +45,7 @@ router.post("/signup", (req, res) => {
     const surname = req.body.surname;
     const name = req.body.name;
     const city = req.body.city;
+     const avatar = req.body.avatar;
 
     // verification champs vide
     if (!pseudo || !req.body.password || !email) {
@@ -67,7 +68,7 @@ router.post("/signup", (req, res) => {
     if (usersData === null) {
       const newUser = new User({
         pseudo: pseudo,
-        avatar: "./avatars/chien_1.png",
+        avatar: avatar,
         created_at: new Date(),
         private: false,
         email: email,
@@ -83,6 +84,7 @@ router.post("/signup", (req, res) => {
           pseudo: data.pseudo,
           city: data.city,
           token: data.token,
+          avatar:data.avatar
         });
       });
     }
@@ -112,6 +114,7 @@ router.post("/signin", (req, res) => {
               token: userData.token,
               pseudo: userData.pseudo,
               city: userData.city, 
+              avatar:userData.avatar
             });
           })
       } else {
@@ -132,7 +135,7 @@ router.get("/", (req, res) => {
 router.put("/", (req, res) => {
   const hash = bcrypt.hashSync(req.body.password, 10);
 
-  //User.findOneAndUpdate(findOne({token}, {champs clefs modifiable: valeurs}, {renvoi la MAJ}))
+  // Mise à jour de l'utilisateur avec les champs modifiés
   User.findOneAndUpdate(
     { token: req.body.token },
     {
@@ -147,8 +150,11 @@ router.put("/", (req, res) => {
     },
     { new: true }
   ).then((data) => {
-    console.log(data);
-    res.json({ result: true, user: data });
+    if (data) {
+      res.json({ result: true, user: data });
+    } else {
+      res.json({ result: false, message: "Utilisateur non trouvé" });
+    }
   });
 });
 
