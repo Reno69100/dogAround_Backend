@@ -132,27 +132,35 @@ router.get("/:token", (req, res) => {
 
 //route pour modifier les champs modifiable du profile utilisateur
 router.put("/:token", (req, res) => {
-  const hash = bcrypt.hashSync(req.body.password, 10);
+  const update = {};
 
-  //User.findOneAndUpdate(findOne({token}, {champs clefs modifiable: valeurs}, {renvoi la MAJ}))
+  // Vérifier chaque champ modifiable et ajouter à update seulement s'il est fourni
+  if (req.body.pseudo) update.pseudo = req.body.pseudo;
+  if (req.body.email) update.email = req.body.email;
+  if (req.body.surname) update.surname = req.body.surname;
+  if (req.body.name) update.name = req.body.name;
+  if (req.body.city) update.city = req.body.city;
+  if (req.body.avatar) update.avatar = req.body.avatar;
+
+  // Hachage du mot de passe si un nouveau mot de passe est fourni
+  if (req.body.password) {
+    const hash = bcrypt.hashSync(req.body.password, 10);
+    update.password = hash;
+  }
+
+  // Mise à jour de l'utilisateur avec les champs modifiés
   User.findOneAndUpdate(
     { token: req.params.token },
-    {
-      $set: {
-        pseudo: req.body.pseudo,
-        email: req.body.email,
-        surname: req.body.surname,
-        password: hash,
-        name: req.body.name,
-        city: req.body.city,
-        avatar: req.body.avatar
-      },
-    },
+    { $set: update },
     { new: true }
   ).then((data) => {
-    console.log(data);
-    res.json({ result: true, user: data });
+    if (data) {
+      res.json({ result: true, user: data });
+    } else {
+      res.json({ result: false, message: "Utilisateur non trouvé" });
+    }
   });
 });
+
 
 module.exports = router;
