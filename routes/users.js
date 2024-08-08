@@ -1,6 +1,7 @@
 var express = require("express");
 var router = express.Router();
 const User = require("../models/users");
+const Place = require('../models/places')
 
 const uid2 = require("uid2");
 const bcrypt = require("bcrypt");
@@ -120,7 +121,7 @@ router.post("/signin", (req, res) => {
 });
 
 
-router.get("/:token", (req, res) => {
+router.get("/", (req, res) => {
   User.findOne({ peudo: req.body.pseudo }).then((data) => {
     res.json({ result: true, user: data });
     console.log("data = " + data);
@@ -128,12 +129,12 @@ router.get("/:token", (req, res) => {
 });
 
 //route pour modifier les champs modifiable du profile utilisateur
-router.put("/:token", (req, res) => {
+router.put("/", (req, res) => {
   const hash = bcrypt.hashSync(req.body.password, 10);
 
   //User.findOneAndUpdate(findOne({token}, {champs clefs modifiable: valeurs}, {renvoi la MAJ}))
   User.findOneAndUpdate(
-    { token: req.params.token },
+    { token: req.body.token },
     {
       $set: {
         pseudo: req.body.pseudo,
@@ -150,5 +151,49 @@ router.put("/:token", (req, res) => {
     res.json({ result: true, user: data });
   });
 });
+
+router.get('/favori/:id/', (req, res) => {
+  Place.findOne({token: req.params.id})
+    .then((dataPlace) => {
+      console.log(dataPlace)
+      if(!dataPlace){
+        User.findOne({token: req.body.token}).then((userData) => {
+          console.log(userData)
+          res.json({result: true, user: userData})
+
+      
+        })
+
+      }
+    })
+})
+
+// route .put pour voir si l'el à FAV est dans la BDD puis rajouter son idgoogleID dans le fav. du User
+router.put('/favori/:id', (req, res) => {
+  
+      User.findOne({token: req.body.token}).then((userData) => {
+
+        if(userData){
+          User.updateOne(
+            {token: req.params.token},
+            { $push: { favorites: req.params.id }}
+           ).then(() => {
+            res.json({result: true,})
+          })
+        }else{
+          res.json({result: false, errof: 'already exists'})
+        }
+      })
+    }
+  )
+
+
+
+
+    
+    
+
+    
+
 
 module.exports = router;
