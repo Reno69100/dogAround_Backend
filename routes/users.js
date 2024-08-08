@@ -82,6 +82,7 @@ router.post("/signup", (req, res) => {
           pseudo: data.pseudo,
           city: data.city,
           token: data.token,
+          avatar:data.avatar
         });
       });
     }
@@ -111,6 +112,7 @@ router.post("/signin", (req, res) => {
               token: userData.token,
               pseudo: userData.pseudo,
               city: userData.city, 
+              avatar:userData.avatar
             });
           })
       } else {
@@ -142,6 +144,7 @@ router.put("/:token", (req, res) => {
         password: hash,
         name: req.body.name,
         city: req.body.city,
+        avatar: req.body.avatar
       },
     },
     { new: true }
