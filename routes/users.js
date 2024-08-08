@@ -44,6 +44,7 @@ router.post("/signup", (req, res) => {
     const surname = req.body.surname;
     const name = req.body.name;
     const city = req.body.city;
+     const avatar = req.body.avatar;
 
     // verification champs vide
     if (!pseudo || !req.body.password || !email) {
@@ -66,7 +67,7 @@ router.post("/signup", (req, res) => {
     if (usersData === null) {
       const newUser = new User({
         pseudo: pseudo,
-        avatar: "./avatars/chien_1.png",
+        avatar: avatar,
         created_at: new Date(),
         private: false,
         email: email,
