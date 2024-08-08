@@ -132,7 +132,7 @@ router.get("/", (req, res) => {
 });
 
 //route pour modifier les champs modifiable du profile utilisateur
-router.put("/", (req, res) => {
+router.put("/update", (req, res) => {
   const hash = bcrypt.hashSync(req.body.password, 10);
 
   // Mise à jour de l'utilisateur avec les champs modifiés
