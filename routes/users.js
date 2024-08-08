@@ -132,7 +132,7 @@ router.get("/", (req, res) => {
 });
 
 //route pour modifier les champs modifiable du profile utilisateur
-router.put("/update", (req, res) => {
+/* router.put("/update", (req, res) => {
   const hash = bcrypt.hashSync(req.body.password, 10);
 
   // Mise à jour de l'utilisateur avec les champs modifiés
@@ -148,6 +148,37 @@ router.put("/update", (req, res) => {
         city: req.body.city,
       },
     },
+    { new: true }
+  ).then((data) => {
+    if (data) {
+      res.json({ result: true, user: data });
+    } else {
+      res.json({ result: false, message: "Utilisateur non trouvé" });
+    }
+  });
+}); */
+
+router.put("/update", (req, res) => {
+  const update = {};
+
+  // Vérifier chaque champ modifiable et ajouter à update seulement s'il est fourni
+  if (req.body.pseudo) update.pseudo = req.body.pseudo;
+  if (req.body.email) update.email = req.body.email;
+  if (req.body.surname) update.surname = req.body.surname;
+  if (req.body.name) update.name = req.body.name;
+  if (req.body.city) update.city = req.body.city;
+  if (req.body.avatar) update.avatar = req.body.avatar;
+
+  // Hachage du mot de passe si un nouveau mot de passe est fourni
+  if (req.body.password) {
+    const hash = bcrypt.hashSync(req.body.password, 10);
+    update.password = hash;
+  }
+
+  // Mise à jour de l'utilisateur avec les champs modifiés
+  User.findOneAndUpdate(
+    { token: req.body.token },
+    { $set: update },
     { new: true }
   ).then((data) => {
     if (data) {
