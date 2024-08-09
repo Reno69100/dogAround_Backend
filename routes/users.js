@@ -45,7 +45,7 @@ router.post("/signup", (req, res) => {
     const surname = req.body.surname;
     const name = req.body.name;
     const city = req.body.city;
-     const avatar = req.body.avatar;
+    const avatar = req.body.avatar;
 
     // verification champs vide
     if (!pseudo || !req.body.password || !email) {
@@ -84,7 +84,7 @@ router.post("/signup", (req, res) => {
           pseudo: data.pseudo,
           city: data.city,
           token: data.token,
-          avatar:data.avatar
+          avatar: data.avatar
         });
       });
     }
@@ -113,8 +113,8 @@ router.post("/signin", (req, res) => {
               result: true,
               token: userData.token,
               pseudo: userData.pseudo,
-              city: userData.city, 
-              avatar:userData.avatar
+              city: userData.city,
+              avatar: userData.avatar
             });
           })
       } else {
@@ -159,47 +159,74 @@ router.put("/", (req, res) => {
 });
 
 router.get('/favori/:id/', (req, res) => {
-  Place.findOne({token: req.params.id})
+  Place.findOne({ token: req.params.id })
     .then((dataPlace) => {
       console.log(dataPlace)
-      if(!dataPlace){
-        User.findOne({token: req.body.token}).then((userData) => {
+      if (!dataPlace) {
+        User.findOne({ token: req.body.token }).then((userData) => {
           console.log(userData)
-          res.json({result: true, user: userData})
+          res.json({ result: true, user: userData })
 
-      
+
         })
 
       }
     })
 })
 
-// route .put pour voir si l'el à FAV est dans la BDD puis rajouter son idgoogleID dans le fav. du User
+
+router.get('/favori', (req, res) => {
+  User.findOne({ token: req.body.token }).then(userData => {
+    res.json({ result: true, users: userData })
+    console.log(userData)
+  })
+})
+
+// route .put pour voir si l'_id du Place est dans la BDD du favorites du User
+// puis rajouter ou supprimer l'_id en fonction de sa présence dans le favorites
 router.put('/favori/:id', (req, res) => {
-  
-      User.findOne({token: req.body.token}).then((userData) => {
 
-        if(userData){
-          User.updateOne(
-            {token: req.params.token},
-            { $push: { favorites: req.params.id }}
-           ).then(() => {
-            res.json({result: true,})
-          })
-        }else{
-          res.json({result: false, errof: 'already exists'})
-        }
-      })
+// recherche de l'utilisateur/token
+  User.findOne({ token: req.body.token }).then(user => {
+    if (user === null) {
+      res.json({ result: false, error: 'User not found' });
+      return;
     }
-  )
+
+// recherche du lieu/id
+    Place.findById(req.params.id).then(place => {
+      if (!place) {
+        res.json({ result: false, error: 'Place not found' });
+        return;
+      }
+
+// si _id du Place est présent dans les favorites du User, supprimer l'_id
+      if (user.favorites.includes(req.params.id)) { // User already liked the tweet
+        User.updateOne({ token: req.body.token }, { $pull: { favorites: req.params.id } })
+          .then((data) => {
+            res.json({ result: true, message: 'Favorit Removed', user: data });
+          });
+
+// Sinon ajouter l'_id dans le favorite car non présent
+      } else { 
+        User.updateOne({ token: req.body.token }, { $push: { favorites: req.params.id } }) // Add user ID to likes
+          .then((data) => {
+            res.json({ result: true, message: 'Favorit Added', user: data });
+          });
+      }
+    });
+  });
+})
 
 
 
 
-    
-    
 
-    
+
+
+
+
+
 
 
 module.exports = router;
