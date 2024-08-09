@@ -158,10 +158,10 @@ router.get("/", (req, res) => {
   });
 }); */
 
-router.put("/update", (req, res) => {
+router.put("/:token", (req, res) => {
   const update = {};
 
-  // Vérifier chaque champ modifiable et ajouter à update seulement s'il est fourni
+  // Vérifier chaque champ modifiable et l'ajouter à update seulement s'il est fourni
   if (req.body.pseudo) update.pseudo = req.body.pseudo;
   if (req.body.email) update.email = req.body.email;
   if (req.body.surname) update.surname = req.body.surname;
@@ -177,7 +177,7 @@ router.put("/update", (req, res) => {
 
   // Mise à jour de l'utilisateur avec les champs modifiés
   User.findOneAndUpdate(
-    { token: req.body.token },
+    { token: req.params.token },
     { $set: update },
     { new: true }
   ).then((data) => {
