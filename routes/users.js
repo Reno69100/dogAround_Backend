@@ -158,10 +158,10 @@ router.get("/", (req, res) => {
   });
 }); */
 
-router.put("/update", (req, res) => {
+router.put("/:token", (req, res) => {
   const update = {};
 
-  // Vérifier chaque champ modifiable et ajouter à update seulement s'il est fourni
+  // Vérifier chaque champ modifiable et l'ajouter à update seulement s'il est fourni
   if (req.body.pseudo) update.pseudo = req.body.pseudo;
   if (req.body.email) update.email = req.body.email;
   if (req.body.surname) update.surname = req.body.surname;
@@ -177,7 +177,7 @@ router.put("/update", (req, res) => {
 
   // Mise à jour de l'utilisateur avec les champs modifiés
   User.findOneAndUpdate(
-    { token: req.body.token },
+    { token: req.params.token },
     { $set: update },
     { new: true }
   ).then((data) => {
@@ -297,24 +297,51 @@ router.get('/favori/:id/', (req, res) => {
     })
 })
 
-// route .put pour voir si l'el à FAV est dans la BDD puis rajouter son idgoogleID dans le fav. du User
+
+router.get('/favori', (req, res) => {
+  User.findOne({ token: req.body.token }).then(userData => {
+    res.json({ result: true, users: userData })
+    console.log(userData)
+  })
+})
+
+// route .put pour voir si l'_id du Place est dans la BDD du favorites du User
+// puis rajouter ou supprimer l'_id en fonction de sa présence dans le favorites
 router.put('/favori/:id', (req, res) => {
 
-  User.findOne({ token: req.body.token }).then((userData) => {
-
-    if (userData) {
-      User.updateOne(
-        { token: req.params.token },
-        { $push: { favorites: req.params.id } }
-      ).then(() => {
-        res.json({ result: true, })
-      })
-    } else {
-      res.json({ result: false, errof: 'already exists' })
+// recherche de l'utilisateur/token
+  User.findOne({ token: req.body.token }).then(user => {
+    if (user === null) {
+      res.json({ result: false, error: 'User not found' });
+      return;
     }
-  })
-}
-)
+
+// recherche du lieu/id
+    Place.findById(req.params.id).then(place => {
+      if (!place) {
+        res.json({ result: false, error: 'Place not found' });
+        return;
+      }
+
+// si _id du Place est présent dans les favorites du User, supprimer l'_id
+      if (user.favorites.includes(req.params.id)) { // User already liked the tweet
+        User.updateOne({ token: req.body.token }, { $pull: { favorites: req.params.id } })
+          .then((data) => {
+            res.json({ result: true, message: 'Favorit Removed', user: data });
+          });
+
+// Sinon ajouter l'_id dans le favorite car non présent
+      } else { 
+        User.updateOne({ token: req.body.token }, { $push: { favorites: req.params.id } }) // Add user ID to likes
+          .then((data) => {
+            res.json({ result: true, message: 'Favorit Added', user: data });
+          });
+      }
+    });
+  });
+})
+
+
 
 
 
