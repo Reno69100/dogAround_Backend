@@ -132,7 +132,7 @@ router.get("/", (req, res) => {
 });
 
 //route pour modifier les champs modifiable du profile utilisateur
-router.put("/", (req, res) => {
+/* router.put("/update", (req, res) => {
   const hash = bcrypt.hashSync(req.body.password, 10);
 
   // Mise à jour de l'utilisateur avec les champs modifiés
@@ -156,8 +156,104 @@ router.put("/", (req, res) => {
       res.json({ result: false, message: "Utilisateur non trouvé" });
     }
   });
+}); */
+
+router.put("/update", (req, res) => {
+  const update = {};
+
+  // Vérifier chaque champ modifiable et ajouter à update seulement s'il est fourni
+  if (req.body.pseudo) update.pseudo = req.body.pseudo;
+  if (req.body.email) update.email = req.body.email;
+  if (req.body.surname) update.surname = req.body.surname;
+  if (req.body.name) update.name = req.body.name;
+  if (req.body.city) update.city = req.body.city;
+  if (req.body.avatar) update.avatar = req.body.avatar;
+
+  // Hachage du mot de passe si un nouveau mot de passe est fourni
+  if (req.body.password) {
+    const hash = bcrypt.hashSync(req.body.password, 10);
+    update.password = hash;
+  }
+
+  // Mise à jour de l'utilisateur avec les champs modifiés
+  User.findOneAndUpdate(
+    { token: req.body.token },
+    { $set: update },
+    { new: true }
+  ).then((data) => {
+    if (data) {
+      res.json({ result: true, user: data });
+    } else {
+      res.json({ result: false, message: "Utilisateur non trouvé" });
+    }
+  });
 });
 
+//route post /user/companions/update => ajout/mise à jour d'un nouveau compagnon
+router.post("/companions/update", async (req, res) => {
+  //Déclaration nouveau compagnon
+  const newCompanion = {
+    avatar: req.body.avatar,
+    name: req.body.name,
+    dogBreed: req.body.dogBreed,
+    weight: req.body.weight,
+    sex: req.body.sex,
+    comment: req.body.comment
+  };
+
+  //Message d'erreur
+  if (!newCompanion.name) {
+    return res.json({ result: false, error: "Veuillez entrer au moins le nom de votre compagnon!" });
+  }
+
+  //Mise à jour compagnon
+  await User.findOneAndUpdate(
+    { token: req.body.token, companions: { name: newCompanion.name} },
+    { $set: { companions: [newCompanion] } })
+    .then((data) => {
+      console.log(data)
+      if (data) {
+        res.json({ result: true });
+        return;
+      } 
+    });
+
+  //Ajout compagnon
+  User.findOneAndUpdate(
+    { token: req.body.token },
+    { $push: { companions: newCompanion } })
+    .then((data) => {
+      if (data) {
+        res.json({ result: true });
+      } else {
+        res.json({ result: false, error: "Utilisateur non trouvé" });
+      }
+    });
+});
+
+//route post /user/companions => recuperation infos companions
+router.post("/companions", (req, res) => {
+  //Récupération liste compagnon
+  User.findOne(
+    { token: req.body.token })
+    .then((data) => {
+      if (data) {
+        const companions = data.companions.map(e => {
+          return {
+            avatar: e.avatar,
+            name: e.name,
+            dogBreed: e.dogBreed,
+            weight: e.weight,
+            sex: e.sex,
+            comment: e.comment
+          }
+        })
+        res.json({ result: true, companions });
+      } else {
+        res.json({ result: false, error: "Utilisateur non trouvé" });
+      }
+    });
+});
 router.get('/favori/:id/', (req, res) => {
   Place.findOne({ token: req.params.id })
     .then((dataPlace) => {
