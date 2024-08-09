@@ -189,14 +189,40 @@ router.put("/update", (req, res) => {
   });
 });
 
+//route delete /user/companions/delete => suppression d'un compagnon
+router.delete("/companions/delete", (req, res) => {
+  //Déclaration nouveau compagnon
+  const companion = {
+    name: req.body.name,
+  };
+
+  //Message d'erreur
+  if (!companion.name) {
+    return res.json({ result: false, error: "champs compagnon vide" });
+  }
+
+  //Mise à jour compagnon
+  User.findOneAndUpdate(
+    { token: req.body.token, "companions.name": companion.name },
+    { $pull: { companions: companion } })
+    .then((data) => {
+      if (data) {
+        res.json({ result: true });
+      }
+      else {
+        res.json({ result: false, error: "Utilisateur non trouvé" });
+      }
+    });
+});
+
 //route post /user/companions/update => ajout/mise à jour d'un nouveau compagnon
-router.post("/companions/update", async (req, res) => {
+router.post("/companions/update", (req, res) => {
   //Déclaration nouveau compagnon
   const newCompanion = {
     avatar: req.body.avatar,
     name: req.body.name,
     dogBreed: req.body.dogBreed,
-    weight: req.body.weight,
+    weight: Number(req.body.weight),
     sex: req.body.sex,
     comment: req.body.comment
   };
@@ -207,26 +233,25 @@ router.post("/companions/update", async (req, res) => {
   }
 
   //Mise à jour compagnon
-  await User.findOneAndUpdate(
-    { token: req.body.token, companions: { name: newCompanion.name} },
-    { $set: { companions: [newCompanion] } })
-    .then((data) => {
-      console.log(data)
-      if (data) {
-        res.json({ result: true });
-        return;
-      } 
-    });
-
-  //Ajout compagnon
   User.findOneAndUpdate(
-    { token: req.body.token },
-    { $push: { companions: newCompanion } })
+    { token: req.body.token, "companions.name": newCompanion.name },
+    { $set: { companions: newCompanion } })
     .then((data) => {
       if (data) {
         res.json({ result: true });
-      } else {
-        res.json({ result: false, error: "Utilisateur non trouvé" });
+      }
+      else {
+        //Ajout compagnon
+        User.findOneAndUpdate(
+          { token: req.body.token },
+          { $push: { companions: newCompanion } })
+          .then((data) => {
+            if (data) {
+              res.json({ result: true });
+            } else {
+              res.json({ result: false, error: "Utilisateur non trouvé" });
+            }
+          });
       }
     });
 });
@@ -254,16 +279,18 @@ router.post("/companions", (req, res) => {
       }
     });
 });
+
+
 router.get('/favori/:id/', (req, res) => {
-  Place.findOne({token: req.params.id})
+  Place.findOne({ token: req.params.id })
     .then((dataPlace) => {
       console.log(dataPlace)
-      if(!dataPlace){
-        User.findOne({token: req.body.token}).then((userData) => {
+      if (!dataPlace) {
+        User.findOne({ token: req.body.token }).then((userData) => {
           console.log(userData)
-          res.json({result: true, user: userData})
+          res.json({ result: true, user: userData })
 
-      
+
         })
 
       }
@@ -272,30 +299,30 @@ router.get('/favori/:id/', (req, res) => {
 
 // route .put pour voir si l'el à FAV est dans la BDD puis rajouter son idgoogleID dans le fav. du User
 router.put('/favori/:id', (req, res) => {
-  
-      User.findOne({token: req.body.token}).then((userData) => {
 
-        if(userData){
-          User.updateOne(
-            {token: req.params.token},
-            { $push: { favorites: req.params.id }}
-           ).then(() => {
-            res.json({result: true,})
-          })
-        }else{
-          res.json({result: false, errof: 'already exists'})
-        }
+  User.findOne({ token: req.body.token }).then((userData) => {
+
+    if (userData) {
+      User.updateOne(
+        { token: req.params.token },
+        { $push: { favorites: req.params.id } }
+      ).then(() => {
+        res.json({ result: true, })
       })
+    } else {
+      res.json({ result: false, errof: 'already exists' })
     }
-  )
+  })
+}
+)
 
 
 
 
-    
-    
 
-    
+
+
+
 
 
 module.exports = router;
