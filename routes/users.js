@@ -235,10 +235,12 @@ router.post("/companions/update", (req, res) => {
   //Mise à jour compagnon
   User.findOneAndUpdate(
     { token: req.body.token, "companions.name": newCompanion.name },
-    { $set: { companions: newCompanion } })
+    { $set: { "companions.$": newCompanion } })
     .then((data) => {
+      console.log(data)
       if (data) {
         res.json({ result: true });
+        return;
       }
       else {
         //Ajout compagnon
