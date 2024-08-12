@@ -460,17 +460,19 @@ router.put("/invitation/:token", (req, res) => {
       //Recherche de l'utilisateur émetteur de l'invitation
       if (data) {
         const user_id_recipient = data.id;
+        const answer = req.body.answer;
+
         //Mise à jour contact émetteur de l'invitation
         User.findOneAndUpdate(
           { pseudo: req.body.pseudo, "contacts.user_id": user_id_recipient },
-          { $set: { "contacts.$.invitation": req.body.answer } }) //answer = "accepted" ou "denied"
+          { $set: { "contacts.$.invitation": answer } }) //answer = "accepted" ou "denied"
           .then(data => {
             if (data) {
               //Mise à jour contact
               const user_id_issuer= data.id;
               User.findOneAndUpdate(
                 { token: req.params.token, "contacts.user_id": user_id_issuer },
-                { $set: { "contacts.$.invitation": req.body.answer } }) //answer = "accepted" ou "denied"
+                { $set: { "contacts.$.invitation": answer } }) //answer = "accepted" ou "denied"
                 .then(data => {
                   if (data) {
                     res.json({ result: true });

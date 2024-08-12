@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const discussionsSchema = mongoose.Schema({
-  message : [{user: id_, date : Date, message: String,}]
+  messages : [{"user_id": {type: mongoose.Schema.Types.ObjectId, ref: 'users'}, date : Date, message: String,}]
 });
 
 const Discussion = mongoose.model('discussions', discussionsSchema);

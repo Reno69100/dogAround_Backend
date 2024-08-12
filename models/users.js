@@ -14,7 +14,7 @@ const usersSchema = mongoose.Schema({
   favorites: [{type: mongoose.Schema.Types.ObjectId, ref: 'places'}],
   companions: [{avatar: String, name : String, dogBreed : String, weight : Number, sex : Number, comment: String,}],
   contacts: [{"user_id": {type: mongoose.Schema.Types.ObjectId, ref: 'users'},
-    "discussion": {type: mongoose.Schema.Types.ObjectId, ref: 'discussions'},
+    "discussion_id": {type: mongoose.Schema.Types.ObjectId, ref: 'discussions'},
     invitation : String}],
   /* discussions: [{type: mongoose.Schema.Types.ObjectId, ref: 'discussions'}], */
 });

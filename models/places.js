@@ -9,7 +9,7 @@ const placesSchema = mongoose.Schema({
   created_by: [{type: mongoose.Schema.Types.ObjectId, ref: 'users'}],
   location: {latitude : String, longitude : String,},
   likes: [{type: mongoose.Schema.Types.ObjectId, ref: 'users'}],
-  nbLike: Number,
+  /* nbLike: Number, */
   events: [{type: mongoose.Schema.Types.ObjectId, ref: 'events'}],
   google_id: String,
   comments: [{type: mongoose.Schema.Types.ObjectId, ref: 'comments'}],
