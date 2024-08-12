@@ -344,6 +344,36 @@ router.put('/favori/:id', (req, res) => {
 })
 
 
+//route pour recherche un pseudo par rapport au caratere donné
+router.get("/:token/pseudos", (req, res) => {
+  const token = req.params.token;
+  const searchQuery = req.query.search || "";
+
+  // Vérifie si le token est valide
+  User.findOne({ token: token })
+    .then((validUser) => {
+      if (!validUser) {
+        return res.json({ result: false });
+      }
+
+      // Crée une expression régulière pour les pseudos commençant par searchQuery
+      const regex = new RegExp(`^${searchQuery}`, "i");
+
+      // Récupère les pseudo correspondant au caractere dans la recherche
+      return User.find({ pseudo: { $regex: regex } })
+      .select("pseudo");
+    })
+    .then((filteredUsers) => {
+      if (filteredUsers) {
+        const pseudos = filteredUsers.map((user) => user.pseudo);
+        res.json({ result: true, pseudos });
+      } else {
+        res.json({ result: false, pseudos: [] });
+      }
+    })
+});
+
+
 
 
 
