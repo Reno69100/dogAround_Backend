@@ -362,10 +362,10 @@ router.get("/:token/pseudos", (req, res) => {
       // Récupère les pseudo correspondant au caractere dans la recherche
       return User.find({ pseudo: { $regex: regex } })
       .select("pseudo");
-    })
-    .then((filteredUsers) => {
-      if (filteredUsers) {
-        const pseudos = filteredUsers.map((user) => user.pseudo);
+    }) 
+    .then((allPseudos) => {
+      if (allPseudos) {
+        const pseudos = allPseudos.map((user) => user.pseudo);
         res.json({ result: true, pseudos });
       } else {
         res.json({ result: false, pseudos: [] });
