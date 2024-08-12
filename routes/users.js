@@ -367,7 +367,7 @@ router.get("/:token/pseudos", (req, res) => {
       .select("pseudo");
     }) 
     .then((allPseudos) => {
-      if (allPseudos) {
+      if (allPseudos.length > 0) {
         const pseudos = allPseudos.map((user) => user.pseudo);
         res.json({ result: true, pseudos });
       } else {
