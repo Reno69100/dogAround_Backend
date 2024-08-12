@@ -311,29 +311,29 @@ router.get('/favori', (req, res) => {
 // puis rajouter ou supprimer l'_id en fonction de sa présence dans le favorites
 router.put('/favori/:id', (req, res) => {
 
-// recherche de l'utilisateur/token
+  // recherche de l'utilisateur/token
   User.findOne({ token: req.body.token }).then(user => {
     if (user === null) {
       res.json({ result: false, error: 'User not found' });
       return;
     }
 
-// recherche du lieu/id
+    // recherche du lieu/id
     Place.findById(req.params.id).then(place => {
       if (!place) {
         res.json({ result: false, error: 'Place not found' });
         return;
       }
 
-// si _id du Place est présent dans les favorites du User, supprimer l'_id
+      // si _id du Place est présent dans les favorites du User, supprimer l'_id
       if (user.favorites.includes(req.params.id)) { // User already liked the tweet
         User.updateOne({ token: req.body.token }, { $pull: { favorites: req.params.id } })
           .then((data) => {
             res.json({ result: true, message: 'Favorit Removed', user: data });
           });
 
-// Sinon ajouter l'_id dans le favorite car non présent
-      } else { 
+        // Sinon ajouter l'_id dans le favorite car non présent
+      } else {
         User.updateOne({ token: req.body.token }, { $push: { favorites: req.params.id } }) // Add user ID to likes
           .then((data) => {
             res.json({ result: true, message: 'Favorit Added', user: data });
@@ -345,7 +345,93 @@ router.put('/favori/:id', (req, res) => {
 
 
 
+//route post /user/invitation => demande d'invitation à une discussion
+router.post("/invitation/:token", (req, res) => {
+  //Vérification utilisateur connecté
+  User.findOne(
+    { token: req.params.token })
+    .then((data) => {
+      //Recherche de l'utilisateur à inviter en fonction du pseudo unique
+      if (data) {
+        const contact_recipient = {
+          user_id: data.id, //Stockage user_id
+          invitation: 'received'
+        };
+        //Mise à jour contact invité
+        User.findOneAndUpdate(
+          { pseudo: req.body.pseudo },
+          { $push: { contacts: contact_recipient } })
+          .then(data => {
+            if (data) {
+              //Mise à jour contact émetteur
+              const contact_issuer = {
+                user_id: data.id, //Stockage user_id
+                invitation: 'issued'
+              };
+              User.findOneAndUpdate(
+                { token: req.params.token },
+                { $push: { contacts: contact_issuer } })
+                .then(data => {
+                  if (data) {
+                    res.json({ result: true });
+                  }
+                  else {
+                    res.json({ result: false, error: "Utilisateur non trouvé" });
+                  }
+                })
+            }
+            else {
+              res.json({ result: false, error: "Pseudo utilisateur non trouvé" });
+            }
+          })
+      }
+      //Token utilisateur non trouvé
+      else {
+        res.json({ result: false, error: "Utilisateur non trouvé" });
+      }
+    });
+});
 
+//route put /user/invitation => réponse invitation à une discussion
+router.put("/invitation/:token", (req, res) => {
+  //Vérification utilisateur connecté
+  User.findOne(
+    { token: req.params.token })
+    .then((data) => {
+      //Recherche de l'utilisateur émetteur de l'invitation
+      if (data) {
+        const user_id_recipient = data.id;
+        //Mise à jour contact émetteur de l'invitation
+        User.findOneAndUpdate(
+          { pseudo: req.body.pseudo, "contacts.user_id": user_id_recipient },
+          { $set: { "contacts.$.invitation": req.body.answer } }) //answer = "accepted" ou "denied"
+          .then(data => {
+            if (data) {
+              //Mise à jour contact
+              const user_id_issuer= data.id;
+              User.findOneAndUpdate(
+                { token: req.params.token, "contacts.user_id": user_id_issuer },
+                { $set: { "contacts.$.invitation": req.body.answer } }) //answer = "accepted" ou "denied"
+                .then(data => {
+                  if (data) {
+                    res.json({ result: true });
+                  }
+                  else {
+                    res.json({ result: false, error: "Utilisateur non trouvé" });
+                  }
+                })
+            }
+            else {
+              res.json({ result: false, error: "Pseudo utilisateur non trouvé" });
+            }
+          })
+      }
+      //Token utilisateur non trouvé
+      else {
+        res.json({ result: false, error: "Utilisateur non trouvé" });
+      }
+    });
+});
 
 
 
