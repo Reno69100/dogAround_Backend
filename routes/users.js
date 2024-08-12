@@ -353,7 +353,7 @@ router.get("/:token/pseudos", (req, res) => {
   User.findOne({ token: token })
     .then((validUser) => {
       if (!validUser) {
-        return res.json({ result: false });
+        return res.json({ result: false, message: "User not found" });
       }
 
       // Crée une expression régulière pour les pseudos commençant par searchQuery
@@ -374,8 +374,32 @@ router.get("/:token/pseudos", (req, res) => {
 });
 
 
+// route permet de recup les contacts via le token du user
+router.get("/contacts/:token", (req, res) => {
+  const token = req.params.token;
 
+  // Vérifie si le token est valide
+  User.findOne({ token: token })
+    .then((validUser) => {
+      if (!validUser) {
+        return res.json({ result: false, message: "User not found"});
+      }
 
+      // Si token valide récupère les contacts du user avec seulement pseudo et avatar
+      return User.findOne({ token: token }).populate(
+        "contacts",
+        "pseudo avatar"
+      );
+    })
+    .then((userContact) => {
+      if (userContact) {
+        const contacts = userContact.contacts;
+        res.json({ result: true, contacts });
+      } else {
+        res.json({ result: false, contacts: [] });
+      }
+    })
+});
 
 
 
