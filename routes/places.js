@@ -138,66 +138,20 @@ router.get("/city/:city/:radius", (req, res) => {
     })
 }) */
 
-router.get('/id/:google_id', (req, res) => {
-  Place.findOne({ google_id: req.params.google_id }).then((placeData) => {
+// router.get('/id/:google_id', (req, res) => {
+//   Place.findOne({ google_id: req.params.google_id }).then((placeData) => {
 
-    if (placeData) {
-      res.json({ result: true, place: placeData })
-    } else {
-      res.json({ result: false, error: 'no registered location' })
-    }
-  })
-
-})
-
-// router.post('/id/:google_id', (req, res) => {
-//   Place.findOne({ google_id: req.params.google_id}).then((placeData) => {
-
-//     if(!placeData){
-//       fetch(`https://places.googleapis.com/v1/places/${google_id}`, {
-//         method: 'GET',
-//         headers: {
-//           'Content-Type': 'application/json',
-//           'X-Goog-Api-Key': process.env.GOOGLE_API_KEY,
-//           'X-Goog-FieldMask': 'displayName,photos,location,regularOpeningHours,primaryTypeDisplayName',
-//         },
-//       }).then(response, response.json())
-//           .then(data => {
-//             const newUser = new User({
-//               title: 'Park du Cinquantenaire',
-//               description: 'Park',
-//               hours: String,
-//               categorie: String,
-//               created_at: new Date(),
-//               created_by: [{type: mongoose.Schema.Types.ObjectId, ref: 'users'}],
-//               location: {latitude : String, longitude : String,},
-//               likes: [{type: mongoose.Schema.Types.ObjectId, ref: 'users'}],
-//               nbLike: Number,
-//               events: [{type: mongoose.Schema.Types.ObjectId, ref: 'events'}],
-//               google_id: ChIJj61dQgK6j4AR4GeTYWZsKWw,
-//               comments: [{type: mongoose.Schema.Types.ObjectId, ref: 'comments'}],
-//             });
-//             newUser.save().then((data) => {
-//               res.json({
-//                 result: true,
-//                 pseudo: data.pseudo,
-//                 city: data.city,
-//                 token: data.token,
-//               });
-//             });
-//           })
-
-
-//       res.json({result: true, place: placeData})
-//     }else{
-//       res.json({result: false, error: 'no registered location'})
+//     if (placeData) {
+//       res.json({ result: true, place: placeData })
+//     } else {
+//       res.json({ result: false, error: 'no registered location' })
 //     }
 //   })
 
 // })
 
 //route permettant de récupérer les informations de l'API google sur le lieu dont on a récupéré le google_id
-router.get('/id/:google_id/', (req, res) => {
+router.get('/id/:google_id', (req, res) => {
     const google_id = req.params.google_id
       fetch(`https://places.googleapis.com/v1/places/${google_id}`, {
         method: 'GET',
@@ -211,24 +165,24 @@ router.get('/id/:google_id/', (req, res) => {
         .then(placeData => {
           console.log('Place Data : ' + placeData)
 
-          const likes = data.likes;
+          const likes = placeData.likes;
 
           res.json({
             result: true,
+            //  places: placeData,
             places: {
               _id: req.params.id,
-              image: placeData.photos[0].name,
-              nom: placeData.displayName,
-              adresse: placeData.formattedAdress,
-              horaires: placeData.regularOpeningHours.weekdayDescriptions,
-              categorie: placeData.primaryType,
-              description: placeData.editorialSummary.text,
-              location: { latitude: placeData.location.latitude, longitude: placeData.location.longitude },
+              image: placeData?.photos[0]?.name || 'non disponible',
+              nom: placeData?.displayName?.text || 'non disponible',
+              adresse: placeData?.formattedAdress || 'non disponible',
+              horaires: placeData?.regularOpeningHours?.weekdayDescriptions || 'non disponible',
+              categorie: placeData?.primaryType || 'non disponible',
+              description: placeData?.editorialSummary?.text || 'non disponible',
+              location: { latitude: placeData?.location?.latitude || 'non disponible', longitude: placeData?.location?.longitude || 'non disponible' },
               likes: likes,
-              nbLike: likes.length,
-              commentaires: data.commentaires,
-              favoris: data.favoris,
-              event: data.event,
+              commentaires: placeData?.commentaires || 'non disponible',
+              favoris: placeData?.favoris || 'non disponible',
+              event: placeData?.event || 'non disponible',
             }
           })
 
