@@ -53,6 +53,7 @@ router.get("/position/:latitude/:longitude/:radius", (req, res) => {
   //Ecriture globale query en fonction de la latitude, longitude, rayon autour de l'utilisateur, et la categories des places voulues
   const params = `locationRestriction.circle.center.latitude=${req.params.latitude}&locationRestriction.circle.center.longitude=${req.params.longitude}&locationRestriction.circle.radius=${req.params.radius}${dataTypes}`
 
+  
   //Requete API google
   fetch(`https://places.googleapis.com/v1/places:searchNearby?${params} `, {
     method: 'POST',
@@ -153,43 +154,40 @@ router.get("/city/:city/:radius", (req, res) => {
 //route permettant de récupérer les informations de l'API google sur le lieu dont on a récupéré le google_id
 router.get('/id/:google_id', (req, res) => {
     const google_id = req.params.google_id
-      fetch(`https://places.googleapis.com/v1/places/${google_id}`, {
+      fetch(`https://places.googleapis.com/v1/places/${google_id}?languageCode=fr`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
           'X-Goog-Api-Key': process.env.GOOGLE_API_KEY,
-          'X-Goog-FieldMask': 'displayName,photos,location,regularOpeningHours,primaryType,editorialSummary',
+          'X-Goog-FieldMask': 'displayName,photos,location,regularOpeningHours,formattedAddress,primaryType,editorialSummary',
         },
       })
         .then(response => response.json())
         .then(placeData => {
           console.log('Place Data : ' + placeData)
-
-          const likes = placeData.likes;
+          const imageURL=placeData?.photos[0]?.name
+          const splitImageURL = imageURL.split("/")
+          const newImageUrl = splitImageURL[3]
 
           res.json({
             result: true,
-            //  places: placeData,
-            places: {
+             place: placeData,
+           
+            place: {
               _id: req.params.id,
-              image: placeData?.photos[0]?.name || 'non disponible',
+              image: 'https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=' + newImageUrl + '&key=' + process.env.GOOGLE_API_KEY || 'non disponible',
               nom: placeData?.displayName?.text || 'non disponible',
-              adresse: placeData?.formattedAdress || 'non disponible',
+              adresse: placeData?.formattedAddress || 'non disponible',
               horaires: placeData?.regularOpeningHours?.weekdayDescriptions || 'non disponible',
               categorie: placeData?.primaryType || 'non disponible',
               description: placeData?.editorialSummary?.text || 'non disponible',
-              location: { latitude: placeData?.location?.latitude || 'non disponible', longitude: placeData?.location?.longitude || 'non disponible' },
-              likes: likes,
-              commentaires: placeData?.commentaires || 'non disponible',
-              favoris: placeData?.favoris || 'non disponible',
-              event: placeData?.event || 'non disponible',
+              location: { latitude: placeData?.location?.latitude || 'non disponible', longitude: placeData?.location?.longitude || 'non disponible' },           
             }
           })
 
         })
     }
   )
-
 
 //route pour enregistrer un nouveau POI dans la BDD par l'utilisateur
 
@@ -211,7 +209,7 @@ router.post('/new/:google_id/:location', (req, res) => {
 
     if (!data) {
 
-      fetch(`https://places.googleapis.com/v1/places/${google_id}`, {
+      fetch(`https://places.googleapis.com/v1/places/${google_id}?languageCode=fr`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
