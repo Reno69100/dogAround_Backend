@@ -171,7 +171,7 @@ router.get('/id/:google_id', (req, res) => {
             //  places: placeData,
             place: {
               _id: req.params.id,
-              image: placeData?.photos[0]?.name || 'non disponible',
+              image: placeData?.photos[0]?.authorAttributions[0]?.uri || 'non disponible',
               nom: placeData?.displayName?.text || 'non disponible',
               adresse: placeData?.formattedAddress || 'non disponible',
               horaires: placeData?.regularOpeningHours?.weekdayDescriptions || 'non disponible',
