@@ -20,14 +20,15 @@ router.get("/messages/:token", async (req, res) => {
     //Récupération de la dicussions
     try {
         const allmessages = await Discussion.findById(queryId)
-        .populate('messages.user_id','pseudo');
+            .populate('messages.user_id', 'pseudo avatar');
 
         if (allmessages) {
-            const messages = allmessages.messages.map(e=> {
+            const messages = allmessages.messages.map(e => {
                 const obj = {
                     pseudo: e.user_id.pseudo,
-                    date:e.date,
-                    message:e.message,
+                    avatar: e.user_id.avatar,
+                    date: e.date,
+                    message: e.message,
                 }
                 return obj;
             })
@@ -64,22 +65,19 @@ router.put("/messages/:token", async (req, res) => {
     };
 
     //Création nouveau message
-    /* console.log(queryId) */
-    Discussion.findByIdAndUpdate(
-        queryId,
-        { $push: { messages: message } },
-        { new: true },)
-        .then((data) => {
-            /* console.log(data) */
-            if (data) {
-                res.json({ result: true });
-            }
-            else {
-                res.json({ result: false, error: "discussion non trouvée" });
-            }
-        })
-        .error(() => res.json({ result: false, error: "discussion non trouvée" }))
+    try {
+        const newmessage = await Discussion.findByIdAndUpdate(queryId, { $push: { messages: message } }, { new: true })
 
+        if (newmessage) {
+            res.json({ result: true });
+        }
+        else {
+            res.json({ result: false, error: "discussion non trouvée" });
+        }
+    }
+    catch {
+        res.json({ result: false, error: "discussion non trouvée" });
+    }
 });
 
 
