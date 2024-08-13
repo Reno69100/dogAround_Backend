@@ -164,14 +164,18 @@ router.get('/id/:google_id', (req, res) => {
       })
         .then(response => response.json())
         .then(placeData => {
-          // console.log('Place Data : ' + placeData)
+          console.log('Place Data : ' + placeData)
+          const imageURL=placeData?.photos[0]?.name
+          const splitImageURL = imageURL.split("/")
+          const newImageUrl = splitImageURL[3]
 
           res.json({
             result: true,
-            //  places: placeData,
+             place: placeData,
+           
             place: {
               _id: req.params.id,
-              image: placeData?.photos[0]?.name || 'non disponible',
+              image: 'https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=' + newImageUrl + '&key=' + process.env.GOOGLE_API_KEY || 'non disponible',
               nom: placeData?.displayName?.text || 'non disponible',
               adresse: placeData?.formattedAddress || 'non disponible',
               horaires: placeData?.regularOpeningHours?.weekdayDescriptions || 'non disponible',
