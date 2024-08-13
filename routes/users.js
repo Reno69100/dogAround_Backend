@@ -106,7 +106,7 @@ router.post("/signin", (req, res) => {
     .then((userData) => {
       if (userData && bcrypt.compareSync(password, userData.password)) {
         const token = uid2(32);
-        // userData.token = token;
+        userData.token = token;
         userData
           .save()
           .then(() => {
