@@ -199,11 +199,7 @@ router.get('/id/:google_id', (req, res) => {
 
 //route permettant de récupérer les informations de l'API google sur le lieu dont on a récupéré le google_id
 router.get('/id/:google_id/', (req, res) => {
-  Place.findOne({ _id: req.params.google_id }).then((data) => {
     const google_id = req.params.google_id
-
-    if (data) {
-
       fetch(`https://places.googleapis.com/v1/places/${google_id}`, {
         method: 'GET',
         headers: {
@@ -238,11 +234,9 @@ router.get('/id/:google_id/', (req, res) => {
           })
 
         })
-    } else {
-      res.json({ result: false, error: 'no registered location' })
     }
-  })
-})
+  )
+
 
 //route pour enregistrer un nouveau POI dans la BDD par l'utilisateur
 
