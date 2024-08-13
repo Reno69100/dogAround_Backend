@@ -2,6 +2,7 @@ var express = require("express");
 var router = express.Router();
 const User = require("../models/users");
 const Place = require('../models/places')
+const Discussion = require('../models/discussions')
 
 const uid2 = require("uid2");
 const bcrypt = require("bcrypt");
@@ -364,8 +365,8 @@ router.get("/:token/pseudos", (req, res) => {
 
       // Récupère les pseudo correspondant au caractere dans la recherche
       return User.find({ pseudo: { $regex: regex } })
-      .select("pseudo");
-    }) 
+        .select("pseudo");
+    })
     .then((allPseudos) => {
       if (allPseudos.length > 0) {
         const pseudos = allPseudos.map((user) => user.pseudo);
@@ -377,50 +378,45 @@ router.get("/:token/pseudos", (req, res) => {
 });
 
 //route post /user/invitation => demande d'invitation à une discussion
-router.post("/invitation/:token", (req, res) => {
+router.post("/invitation/:token", async (req, res) => {
   //Vérification utilisateur connecté
-  User.findOne(
-    { token: req.params.token })
-    .then((data) => {
-      //Recherche de l'utilisateur à inviter en fonction du pseudo unique
-      if (data) {
-        const contact_recipient = {
-          user_id: data.id, //Stockage user_id
-          invitation: 'received'
-        };
-        //Mise à jour contact invité
-        User.findOneAndUpdate(
-          { pseudo: req.body.pseudo },
-          { $push: { contacts: contact_recipient } })
-          .then(data => {
-            if (data) {
-              //Mise à jour contact émetteur
-              const contact_issuer = {
-                user_id: data.id, //Stockage user_id
-                invitation: 'issued'
-              };
-              User.findOneAndUpdate(
-                { token: req.params.token },
-                { $push: { contacts: contact_issuer } })
-                .then(data => {
-                  if (data) {
-                    res.json({ result: true });
-                  }
-                  else {
-                    res.json({ result: false, error: "Utilisateur non trouvé" });
-                  }
-                })
-            }
-            else {
-              res.json({ result: false, error: "Pseudo utilisateur non trouvé" });
-            }
-          })
-      }
-      //Token utilisateur non trouvé
-      else {
-        res.json({ result: false, error: "Utilisateur non trouvé" });
-      }
-    });
+  const validUser = await User.findOne({ token: req.params.token });
+  if (!validUser) {
+    return res.json({ result: false, error: "Utilisateur non connecté" });
+  }
+
+  //Définition
+  const contact_recipient = {
+    user_id: validUser.id, //Stockage user_id
+    invitation: 'received'
+  };
+
+  //Recherche et mise à jour de l'utilisateur à inviter en fonction du pseudo unique
+  const userData = await User.findOneAndUpdate(
+    { pseudo: req.body.pseudo },
+    { $push: { contacts: contact_recipient } });
+
+  if (!userData) {
+    return res.json({ result: false, error: "Pseudo utilisateur à inviter non trouvé" });
+  }
+
+  //Mise à jour contact émetteur
+  const contact_issuer = {
+    user_id: userData.id, //Stockage user_id
+    invitation: 'issued'
+  };
+
+  const userData2 = await User.findOneAndUpdate(
+    { token: req.params.token },
+    { $push: { contacts: contact_issuer } });
+
+  if (!userData2) {
+    return res.json({ result: false, error: "Utilisateur non connecté" });
+  }
+
+  //Réponse route
+  res.json({ result: true });
+
 });
 
 // route permet de recup les contacts via le token du user
@@ -429,76 +425,70 @@ router.get("/contacts/:token", (req, res) => {
 
   // Vérifie si le token est valide
   User.findOne({ token: token })
+    .populate('contacts.user_id', 'pseudo avatar')
     .then((validUser) => {
       if (!validUser) {
-        return res.json({ result: false, message: "User not found"});
+        return res.json({ result: false, message: "User not found" });
       }
 
-      // Si token valide récupère les contacts du user avec seulement pseudo et avatar
-      return User.findOne({ token: token }).populate(
-        "contacts",
-        "pseudo avatar"
-      );
+      const contacts = validUser.contacts.map(e => {
+        const obj = {
+          pseudo: e.user_id.pseudo,
+          avatar: e.user_id.avatar,
+          invitation: e.invitation,
+          discussion_id: e.discussion_id,
+        }
+        return obj;
+      })
+
+      res.json({ result: true, contacts });
     })
-    .then((userContact) => {
-      if (userContact) {
-        const contacts = userContact.contacts;
-        res.json({ result: true, contacts });
-      } else {
-        res.json({ result: false, contacts: [] });
-      }
-    })
-  })
-  
+})
+
 
 //route put /user/invitation => réponse invitation à une discussion
-router.put("/invitation/:token", (req, res) => {
+router.put("/invitation/:token", async (req, res) => {
   //Vérification utilisateur connecté
-  User.findOne(
-    { token: req.params.token })
-    .then((data) => {
-      //Recherche de l'utilisateur émetteur de l'invitation
-      if (data) {
-        const user_id_recipient = data.id;
-        const answer = req.body.answer;
+  const validUser = await User.findOne({ token: req.params.token });
+  if (!validUser) {
+    return res.json({ result: false, error: "Utilisateur non trouvé" });
+  }
 
-        //Mise à jour contact émetteur de l'invitation
-        User.findOneAndUpdate(
-          { pseudo: req.body.pseudo, "contacts.user_id": user_id_recipient },
-          { $set: { "contacts.$.invitation": answer } }) //answer = "accepted" ou "denied"
-          .then(data => {
-            if (data) {
-              //Mise à jour contact
-              const user_id_issuer= data.id;
-              User.findOneAndUpdate(
-                { token: req.params.token, "contacts.user_id": user_id_issuer },
-                { $set: { "contacts.$.invitation": answer } }) //answer = "accepted" ou "denied"
-                .then(data => {
-                  if (data) {
-                    res.json({ result: true });
-                  }
-                  else {
-                    res.json({ result: false, error: "Utilisateur non trouvé" });
-                  }
-                })
-            }
-            else {
-              res.json({ result: false, error: "Pseudo utilisateur non trouvé" });
-            }
-          })
-      }
-      //Token utilisateur non trouvé
-      else {
-        res.json({ result: false, error: "Utilisateur non trouvé" });
-      }
-    });
+  //Recherche de l'utilisateur receveur de l'invitation
+  const user_id_recipient = validUser.id;
+  const answer = req.body.answer;
+
+  //Si invitation acceptée alors création discussion
+  let dataDiscussion = '';
+  if (answer === "accepted") {
+    const newDiscussion = new Discussion();
+
+    dataDiscussion = await newDiscussion.save();
+    if (!dataDiscussion) {
+      return res.json({ result: false, error: "probleme sauvegarde discussion" });
+    }
+  }
+
+  //Mise à jour contact émetteur de l'invitation
+  const userData = await User.findOneAndUpdate(
+    { pseudo: req.body.pseudo, "contacts.user_id": user_id_recipient },
+    { $set: { "contacts.$.invitation": answer, "contacts.$.discussion_id": dataDiscussion.id } }) //answer = "accepted" ou "denied"
+
+  if (!userData) {
+    return res.json({ result: false, error: "Pseudo utilisateur non trouvé" });
+  }
+
+  //Mise à jour contact invité
+  const user_id_issuer = userData.id;
+  const userData2 = await User.findOneAndUpdate(
+    { token: req.params.token, "contacts.user_id": user_id_issuer },
+    { $set: { "contacts.$.invitation": answer, "contacts.$.discussion_id": dataDiscussion.id } }) //answer = "accepted" ou "denied"
+  if (!userData2) {
+    return res.json({ result: false, error: "Utilisateur non trouvé" });
+  }
+
+  //Réponse route
+  res.json({ result: true });
 });
-
-
-
-
-
-
-
 
 module.exports = router;
