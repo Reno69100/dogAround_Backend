@@ -105,7 +105,7 @@ router.post("/signin", (req, res) => {
     .then((userData) => {
       if (userData && bcrypt.compareSync(password, userData.password)) {
         const token = uid2(32);
-        userData.token = token;
+        // userData.token = token;
         userData
           .save()
           .then(() => {
@@ -436,9 +436,8 @@ router.get("/contacts/:token", (req, res) => {
 
       // Si token valide récupère les contacts du user avec seulement pseudo et avatar
       return User.findOne({ token: token }).populate(
-        "contacts",
-        "pseudo avatar"
-      );
+        "contacts.user_id",["pseudo", "avatar", "-_id"]
+      )
     })
     .then((userContact) => {
       if (userContact) {
