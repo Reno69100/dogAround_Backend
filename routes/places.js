@@ -168,17 +168,17 @@ router.get('/id/:google_id', (req, res) => {
 
           res.json({
             result: true,
-             places: placeData,
-            // place: {
-            //   _id: req.params.id,
-            //   image: placeData?.photos[0]?.name || 'non disponible',
-            //   nom: placeData?.displayName?.text || 'non disponible',
-            //   adresse: placeData?.formattedAdress || 'non disponible',
-            //   horaires: placeData?.regularOpeningHours?.weekdayDescriptions[0] || 'non disponible',
-            //   categorie: placeData?.primaryType || 'non disponible',
-            //   description: placeData?.editorialSummary?.text || 'non disponible',
-            //   location: { latitude: placeData?.location?.latitude || 'non disponible', longitude: placeData?.location?.longitude || 'non disponible' },           
-            // }
+            //  places: placeData,
+            place: {
+              _id: req.params.id,
+              image: placeData?.photos[0]?.name || 'non disponible',
+              nom: placeData?.displayName?.text || 'non disponible',
+              adresse: placeData?.formattedAdress || 'non disponible',
+              horaires: placeData?.regularOpeningHours?.weekdayDescriptions[0] || 'non disponible',
+              categorie: placeData?.primaryType || 'non disponible',
+              description: placeData?.editorialSummary?.text || 'non disponible',
+              location: { latitude: placeData?.location?.latitude || 'non disponible', longitude: placeData?.location?.longitude || 'non disponible' },           
+            }
           })
 
         })
