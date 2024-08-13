@@ -153,7 +153,7 @@ router.get("/city/:city/:radius", (req, res) => {
 //route permettant de récupérer les informations de l'API google sur le lieu dont on a récupéré le google_id
 router.get('/id/:google_id', (req, res) => {
     const google_id = req.params.google_id
-      fetch(`https://places.googleapis.com/v1/places/${google_id}`, {
+      fetch(`https://places.googleapis.com/v1/places/${google_id}?languageCode=fr`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -165,24 +165,18 @@ router.get('/id/:google_id', (req, res) => {
         .then(placeData => {
           console.log('Place Data : ' + placeData)
 
-          const likes = placeData.likes;
-
           res.json({
             result: true,
             //  places: placeData,
-            places: {
+            place: {
               _id: req.params.id,
               image: placeData?.photos[0]?.name || 'non disponible',
               nom: placeData?.displayName?.text || 'non disponible',
               adresse: placeData?.formattedAdress || 'non disponible',
-              horaires: placeData?.regularOpeningHours?.weekdayDescriptions || 'non disponible',
+              horaires: placeData?.regularOpeningHours?.weekdayDescriptions[0] || 'non disponible',
               categorie: placeData?.primaryType || 'non disponible',
               description: placeData?.editorialSummary?.text || 'non disponible',
-              location: { latitude: placeData?.location?.latitude || 'non disponible', longitude: placeData?.location?.longitude || 'non disponible' },
-              likes: likes,
-              commentaires: placeData?.commentaires || 'non disponible',
-              favoris: placeData?.favoris || 'non disponible',
-              event: placeData?.event || 'non disponible',
+              location: { latitude: placeData?.location?.latitude || 'non disponible', longitude: placeData?.location?.longitude || 'non disponible' },           
             }
           })
 
