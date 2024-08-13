@@ -159,7 +159,7 @@ router.get('/id/:google_id', (req, res) => {
         headers: {
           'Content-Type': 'application/json',
           'X-Goog-Api-Key': process.env.GOOGLE_API_KEY,
-          'X-Goog-FieldMask': 'displayName,photos,location,regularOpeningHours,primaryType,editorialSummary',
+          'X-Goog-FieldMask': 'displayName,photos,location,regularOpeningHours,formattedAddress,primaryType,editorialSummary',
         },
       })
         .then(response => response.json())
@@ -168,17 +168,17 @@ router.get('/id/:google_id', (req, res) => {
 
           res.json({
             result: true,
-            //  places: placeData,
-            place: {
-              _id: req.params.id,
-              image: placeData?.photos[0]?.name || 'non disponible',
-              nom: placeData?.displayName?.text || 'non disponible',
-              adresse: placeData?.formattedAdress || 'non disponible',
-              horaires: placeData?.regularOpeningHours?.weekdayDescriptions[0] || 'non disponible',
-              categorie: placeData?.primaryType || 'non disponible',
-              description: placeData?.editorialSummary?.text || 'non disponible',
-              location: { latitude: placeData?.location?.latitude || 'non disponible', longitude: placeData?.location?.longitude || 'non disponible' },           
-            }
+             places: placeData,
+            // place: {
+            //   _id: req.params.id,
+            //   image: placeData?.photos[0]?.name || 'non disponible',
+            //   nom: placeData?.displayName?.text || 'non disponible',
+            //   adresse: placeData?.formattedAdress || 'non disponible',
+            //   horaires: placeData?.regularOpeningHours?.weekdayDescriptions[0] || 'non disponible',
+            //   categorie: placeData?.primaryType || 'non disponible',
+            //   description: placeData?.editorialSummary?.text || 'non disponible',
+            //   location: { latitude: placeData?.location?.latitude || 'non disponible', longitude: placeData?.location?.longitude || 'non disponible' },           
+            // }
           })
 
         })
@@ -205,7 +205,7 @@ router.post('/new/:google_id/:location', (req, res) => {
 
     if (!data) {
 
-      fetch(`https://places.googleapis.com/v1/places/${google_id}`, {
+      fetch(`https://places.googleapis.com/v1/places/${google_id}?languageCode=fr`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
