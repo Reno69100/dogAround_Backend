@@ -53,6 +53,7 @@ router.get("/position/:latitude/:longitude/:radius", (req, res) => {
   //Ecriture globale query en fonction de la latitude, longitude, rayon autour de l'utilisateur, et la categories des places voulues
   const params = `locationRestriction.circle.center.latitude=${req.params.latitude}&locationRestriction.circle.center.longitude=${req.params.longitude}&locationRestriction.circle.radius=${req.params.radius}${dataTypes}`
 
+  
   //Requete API google
   fetch(`https://places.googleapis.com/v1/places:searchNearby?${params} `, {
     method: 'POST',
@@ -197,8 +198,8 @@ router.get('/id/:google_id', (req, res) => {
 // })
 
 //route permettant de récupérer les informations de l'API google sur le lieu dont on a récupéré le google_id
-router.get('/id/:id/:google_id/', (req, res) => {
-  Place.findOne({ _id: req.params.id }).then((data) => {
+router.get('/id/:google_id/', (req, res) => {
+  Place.findOne({ _id: req.params.google_id }).then((data) => {
     const google_id = req.params.google_id
 
     if (data) {
@@ -213,7 +214,7 @@ router.get('/id/:id/:google_id/', (req, res) => {
       })
         .then(response => response.json())
         .then(placeData => {
-          console.log('Place Data : ' + placeData)
+          // console.log('Place Data : ' + placeData)
 
           const likes = data.likes;
 
