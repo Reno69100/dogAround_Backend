@@ -209,45 +209,34 @@ router.post('/new/:google_id/:location', (req, res) => {
 
     if (!data) {
 
-      fetch(`https://places.googleapis.com/v1/places/${google_id}?languageCode=fr`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Goog-Api-Key': process.env.GOOGLE_API_KEY,
-          'X-Goog-FieldMask': 'displayName,photos,location,regularOpeningHours,primaryType,editorialSummary',
-        },
-      })
-        .then(response => response.json())
-        .then(placeData => {
           const newPlace = new Place({
-            title: req.params.title,
+            title: req.body.title,
             description: req.body.description,
-            hours: placeData.regularOpeningHours.weekdayDescriptions,
+            hours: req.body.hours,
             categorie: 'Autre',
             created_at: new Date(),
-            location: { latitude: placeData.location.latitude, longitude: placeData.location.longitude },
+            location: { latitude: req.body.latitude, longitude: req.body.longitude },
             google_id: req.params.google_id,
-            image: placeData.photos[0].name,
+            image: req.body.image,
           })
-          newPlace.save().then((data) => {
+          newPlace.save().then((newData) => {
             res.json({
               result: true,
-              title: data.title,
-              description: data.description,
-              hours: data.hours,
-              categorie: data.categorie,
-              created_at: data.created_at,
-              location: data.location,
-              google_id: data.google_id,
-              image: data.image,
+              title: newData.title,
+              description: newData.description,
+              hours: newData.hours,
+              categorie: newData.categorie,
+              created_at: newData.created_at,
+              location: newData.location,
+              google_id: newData.google_id,
+              image: newData.image,
             });
           })
   
 
-  
+        }
       })
-  }
-})
+
 })
 
 
