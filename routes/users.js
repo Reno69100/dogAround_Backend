@@ -12,19 +12,15 @@ router.get("/", function (req, res, next) {
   res.send("respond with a resource");
 });
 
+// A supprimer ??? à priori non utilisé
 router.get("/signin", (req, res) => {
   User.find().then((data) => {
     res.json({ result: true, user: data });
   });
 });
 
-// router.get('/signup', (req, res) => {
-//   User.find().then(data => {
-//     res.json({ result: true, user: data });
 
-//   });
-// });
-
+// A supprimer ??? à priori non utilisé
 router.get("/signup", (req, res) => {
   User.findOne({ peudo: req.body.pseudo }).then((data) => {
     res.json({ result: true, user: data });
@@ -33,6 +29,7 @@ router.get("/signup", (req, res) => {
 });
 //route pour SignUp
 router.post("/signup", (req, res) => {
+  
   //'$or:' == '||' ; findOne({pseudo:req.body.pseudo} || {email: req.body.email})
   User.findOne({
     $or: [{ pseudo: req.body.pseudo }, { email: req.body.email }],
@@ -91,7 +88,18 @@ router.post("/signup", (req, res) => {
   });
 });
 
+//route pour récupérer les informations de l'utilisateur
+router.get('/signin', (req, res) => {
+  User.findOne({token: token}).then((userData) => {
+    if(userData){
+      res.json({result: true, user: userData})
+    }else{
+      res.json({result: false, message: 'user not found'})
+    }
+  })
+})
 
+//route pour la connection de l'utilisateur
 router.post("/signin", (req, res) => {
   const { email, password } = req.body;
 
@@ -430,17 +438,21 @@ router.get("/contacts/:token", (req, res) => {
         return res.json({ result: false, message: "User not found" });
       }
 
-      const contacts = validUser.contacts.map(e => {
-        const obj = {
-          pseudo: e.user_id.pseudo,
-          avatar: e.user_id.avatar,
-          invitation: e.invitation,
-          discussion_id: e.discussion_id,
-        }
-        return obj;
-      })
-
-      res.json({ result: true, contacts });
+      if (validUser.contacts.length >0 ) {
+        const contacts = validUser.contacts.map(e => {
+          const obj = {
+            pseudo: e.user_id.pseudo,
+            avatar: e.user_id.avatar,
+            invitation: e.invitation,
+            discussion_id: e.discussion_id,
+          }
+          return obj;
+        })
+        res.json({ result: true, contacts });
+        return;
+      }
+  
+      res.json({ result: true, contacts : [] });
     })
 })
 
