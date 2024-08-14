@@ -52,7 +52,6 @@ router.get("/position/:latitude/:longitude/:radius", (req, res) => {
 
   //Ecriture globale query en fonction de la latitude, longitude, rayon autour de l'utilisateur, et la categories des places voulues
   const params = `locationRestriction.circle.center.latitude=${req.params.latitude}&locationRestriction.circle.center.longitude=${req.params.longitude}&locationRestriction.circle.radius=${req.params.radius}${dataTypes}`
-
   
   //Requete API google
   fetch(`https://places.googleapis.com/v1/places:searchNearby?${params} `, {
@@ -190,7 +189,6 @@ router.get('/id/:google_id', (req, res) => {
   )
 
 //route pour enregistrer un nouveau POI dans la BDD par l'utilisateur
-
 router.post('/new/:google_id/:location', (req, res) => {
   Place.findOne({ google_id: req.params.google_id, location: req.params.location, categorie: req.body.categorie }).then((data) => {
     const google_id = req.params.google_id;
