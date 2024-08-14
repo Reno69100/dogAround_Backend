@@ -439,17 +439,21 @@ router.get("/contacts/:token", (req, res) => {
         return res.json({ result: false, message: "User not found" });
       }
 
-      const contacts = validUser.contacts.map(e => {
-        const obj = {
-          pseudo: e.user_id.pseudo,
-          avatar: e.user_id.avatar,
-          invitation: e.invitation,
-          discussion_id: e.discussion_id,
-        }
-        return obj;
-      })
-
-      res.json({ result: true, contacts });
+      if (validUser.contacts.length >0 ) {
+        const contacts = validUser.contacts.map(e => {
+          const obj = {
+            pseudo: e.user_id.pseudo,
+            avatar: e.user_id.avatar,
+            invitation: e.invitation,
+            discussion_id: e.discussion_id,
+          }
+          return obj;
+        })
+        res.json({ result: true, contacts });
+        return;
+      }
+  
+      res.json({ result: true, contacts : [] });
     })
 })
 
