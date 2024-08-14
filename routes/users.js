@@ -19,7 +19,6 @@ router.get("/signin", (req, res) => {
   });
 });
 
-
 // A supprimer ??? à priori non utilisé
 router.get("/signup", (req, res) => {
   User.findOne({ peudo: req.body.pseudo }).then((data) => {
