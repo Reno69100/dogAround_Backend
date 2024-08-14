@@ -32,7 +32,6 @@ router.get("/signup", (req, res) => {
   });
 });
 //route pour SignUp
-
 router.post("/signup", (req, res) => {
   //'$or:' == '||' ; findOne({pseudo:req.body.pseudo} || {email: req.body.email})
   User.findOne({
