@@ -426,26 +426,33 @@ router.get("/contacts/:token", (req, res) => {
   // Vérifie si le token est valide
   User.findOne({ token: token })
     .populate('contacts.user_id', 'pseudo avatar')
+    /* .populate('contacts.discussion_id', 'newMessage') */
+    .populate({
+      path: 'contacts.discussion_id',
+      populate: { path: 'newMessage', select: 'pseudo' }
+    })
     .then((validUser) => {
       if (!validUser) {
         return res.json({ result: false, message: "User not found" });
       }
 
-      if (validUser.contacts.length >0 ) {
+      if (validUser.contacts.length > 0) {
         const contacts = validUser.contacts.map(e => {
+          /* console.log(e) */
           const obj = {
             pseudo: e.user_id.pseudo,
             avatar: e.user_id.avatar,
             invitation: e.invitation,
-            discussion_id: e.discussion_id,
+            discussion: e.discussion_id,
           }
+          /* console.log(obj) */
           return obj;
         })
         res.json({ result: true, contacts });
         return;
       }
-  
-      res.json({ result: true, contacts : [] });
+
+      res.json({ result: true, contacts: [] });
     })
 })
 

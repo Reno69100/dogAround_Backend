@@ -13,6 +13,7 @@ router.get("/messages/:token", async (req, res) => {
 
     //Vérification utilsateur connecté
     const validUser = await User.findOne({ token: req.params.token })
+
     if (!validUser) {
         return res.json({ result: false, error: "utilisateur non trouvé" });
     }
@@ -22,6 +23,14 @@ router.get("/messages/:token", async (req, res) => {
         const allmessages = await Discussion.findById(queryId)
             .populate('messages.user_id', 'pseudo avatar');
 
+        //Remise à zéro nouveau message
+        if ((allmessages.newMessage !== null)&&(allmessages.newMessage.toString() !== validUser._id.toString())) {
+            const razmessage = await Discussion.findByIdAndUpdate(queryId,
+                { $set: { "newMessage": null } },
+                { new: true })
+        }
+
+        //Mise en forme donnée envoyées
         if (allmessages) {
             const messages = allmessages.messages.map(e => {
                 const obj = {
@@ -35,11 +44,12 @@ router.get("/messages/:token", async (req, res) => {
             res.json({ result: true, messages: messages });
         }
         else {
-            res.json({ result: false, error: "discussion non trouvée" });
+            res.status(400).json({ result: false, error: "discussion non trouvée" });
         }
     }
-    catch {
-        res.json({ result: false, error: "discussion non trouvée" });
+    catch (error) {
+        /* console.log(error) */
+        res.status(400).json({ result: false, error: "discussion non trouvée" });
     }
 });
 
@@ -66,17 +76,20 @@ router.put("/messages/:token", async (req, res) => {
 
     //Création nouveau message
     try {
-        const newmessage = await Discussion.findByIdAndUpdate(queryId, { $push: { messages: message } }, { new: true })
+        const newmessage = await Discussion.findByIdAndUpdate(queryId,
+            { $push: { "messages": message }, $set: { "newMessage": validUser.id } },
+            { new: true })
 
         if (newmessage) {
             res.json({ result: true });
         }
         else {
-            res.json({ result: false, error: "discussion non trouvée" });
+            res.status(400).json({ result: false, error: "Message non émis" });
         }
     }
-    catch {
-        res.json({ result: false, error: "discussion non trouvée" });
+    catch (error) {
+        /* console.log(error) */
+        res.status(400).json({ result: false, error: "discussion non trouvée" });
     }
 });
 
