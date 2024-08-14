@@ -12,28 +12,25 @@ router.get("/", function (req, res, next) {
   res.send("respond with a resource");
 });
 
+// A supprimer ??? à priori non utilisé
 router.get("/signin", (req, res) => {
   User.find().then((data) => {
     res.json({ result: true, user: data });
   });
 });
 
-// router.get('/signup', (req, res) => {
-//   User.find().then(data => {
-//     res.json({ result: true, user: data });
 
-//   });
-// });
-
+// A supprimer ??? à priori non utilisé
 router.get("/signup", (req, res) => {
   User.findOne({ peudo: req.body.pseudo }).then((data) => {
     res.json({ result: true, user: data });
     console.log("data = " + data);
   });
 });
-//route pour SignUp
 
+//route pour SignUp
 router.post("/signup", (req, res) => {
+  
   //'$or:' == '||' ; findOne({pseudo:req.body.pseudo} || {email: req.body.email})
   User.findOne({
     $or: [{ pseudo: req.body.pseudo }, { email: req.body.email }],
@@ -92,7 +89,18 @@ router.post("/signup", (req, res) => {
   });
 });
 
+//route pour récupérer les informations de l'utilisateur
+router.get('/signin', (req, res) => {
+  User.findOne({token: token}).then((userData) => {
+    if(userData){
+      res.json({result: true, user: userData})
+    }else{
+      res.json({result: false, message: 'user not found'})
+    }
+  })
+})
 
+//route pour la connection de l'utilisateur
 router.post("/signin", (req, res) => {
   const { email, password } = req.body;
 
