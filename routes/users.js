@@ -30,7 +30,7 @@ router.get("/signup", (req, res) => {
 
 //route pour SignUp
 router.post("/signup", (req, res) => {
-  
+
   //'$or:' == '||' ; findOne({pseudo:req.body.pseudo} || {email: req.body.email})
   User.findOne({
     $or: [{ pseudo: req.body.pseudo }, { email: req.body.email }],
@@ -132,7 +132,7 @@ router.post("/signin", (req, res) => {
     })
 });
 
-
+// A supprimer ??? à priori non utilisé
 router.get("/", (req, res) => {
   User.findOne({ peudo: req.body.pseudo }).then((data) => {
     res.json({ result: true, user: data });
@@ -167,6 +167,7 @@ router.get("/", (req, res) => {
   });
 }); */
 
+//route pour mettre à jour le token
 router.put("/:token", (req, res) => {
   const update = {};
 
