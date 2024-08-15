@@ -437,7 +437,7 @@ router.get("/contacts/:token", (req, res) => {
     .populate({
       path: 'contacts.discussion_id',
       populate: { path: 'newMessage', select: 'pseudo' }
-    })
+    }).populate('contacts.user_id', ['pseudo', 'avatar', '-_id'])
     .then((validUser) => {
       if (!validUser) {
         return res.json({ result: false, message: "User not found" });
