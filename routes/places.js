@@ -92,6 +92,7 @@ router.get("/position/:latitude/:longitude/:radius", (req, res) => {
             type: typefilter,
             events: [],
             likes: [],
+            comments: [],
           }
 
           return newPlace;
