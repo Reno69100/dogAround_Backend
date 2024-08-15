@@ -83,7 +83,7 @@ router.get("/position/:latitude/:longitude/:radius", (req, res) => {
             typefilter = 'autre'
           }
 
-          //Schema objet nouvelle places à renovyer au frontend
+          //Schema objet nouvelle places à renvoyer au frontend
           const newPlace = {
             id: '',
             google_id: e.id,
